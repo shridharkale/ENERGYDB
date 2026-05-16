@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnergyFlow — Campus Energy Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --success-soft: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-soft: #fffbeb;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --radius: 12px;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            font-size: 14px; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav-item svg { width: 20px; height: 20px; stroke-width: 2; }
+
+        .nav-item:hover {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-logout svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-color: #fca5a5;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+        }
+
+        .header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .header p { color: var(--text-muted); margin-top: 4px; }
+
+        .page { display: none; animation: fadeIn 0.4s ease-out; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards & Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-desc { font-size: 12px; color: var(--text-muted); }
+
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .panel-body { padding: 24px; }
+
+        /* Custom Bar Chart */
+        .chart-row {
+            margin-bottom: 18px;
+        }
+
+        .chart-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .chart-bar-container {
+            height: 8px;
+            background: var(--accent-soft);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .chart-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Tables */
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            text-align: left;
+            padding: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 16px;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--accent-soft); }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-success { background: var(--success-soft); color: var(--success); }
+        .badge-warning { background: var(--warning-soft); color: var(--warning); }
+        .badge-danger { background: var(--danger-soft); color: var(--danger); }
+        .badge-neutral { background: #f1f5f9; color: #475569; }
+
+        /* Alerts List */
+        .alert-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 16px;
+            transition: background 0.2s;
+        }
+        .alert-item:last-child { border-bottom: none; }
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .alert-content h4 { font-size: 15px; margin-bottom: 4px; }
+        .alert-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-weight: 600; color: var(--text-main); font-size: 13px; }
+        input, select {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--primary);
+            color: white;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* Loading */
+        .shimmer {
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 104px;
+            display: inline-block;
+            position: relative;
+            animation-duration: 1s;
+            animation-fill-mode: forwards;
+            animation-iteration-count: infinite;
+            animation-name: placeholderShimmer;
+            animation-timing-function: linear;
+            border-radius: 4px;
+        }
+
+        @keyframes placeholderShimmer {
+            0% { background-position: -468px 0; }
+            100% { background-position: 468px 0; }
+        }
+
+        .loading-text { color: var(--text-muted); text-align: center; padding: 40px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="logo">
+        <div class="logo-icon">E</div>
+        <span class="logo-text">EnergyFlow</span>
+    </div>
+    <div class="nav-menu">
+        <div class="nav-item active" onclick="nav('dash', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            Dashboard
+        </div>
+        <div class="nav-item" onclick="nav('buildings', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            Buildings
+        </div>
+        <div class="nav-item" onclick="nav('logs', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Readings
+        </div>
+        <div class="nav-item" onclick="nav('alerts', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Alerts
+        </div>
+        <div class="nav-item" onclick="nav('add', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Data
+        </div>
+    </div>
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar" id="user-avatar">{{ user_name[0] | upper }}</div>
+            <div>
+                <div class="user-name">{{ user_name }}</div>
+                <div class="user-role">Logged in</div>
+            </div>
+        </div>
+        <a href="/logout" class="btn-logout" id="logout-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            Sign Out
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+        <div class="header">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Real-time energy consumption overview</p>
+            </div>
+            <div class="badge badge-success">● System Live</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Consumption</div>
+                <div class="stat-value" id="s-kwh">—</div>
+                <div class="stat-desc">Cumulative kWh (all time)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Meters</div>
+                <div class="stat-value" id="s-meters">—</div>
+                <div class="stat-desc" id="s-meters-u">of — total units</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Peak Load</div>
+                <div class="stat-value" id="s-peak">—</div>
+                <div class="stat-desc">Maximum recorded kW</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">System Alerts</div>
+                <div class="stat-value" id="s-alerts">—</div>
+                <div class="stat-desc">Anomalies detected</div>
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Consumption by Building</h2>
+                </div>
+                <div class="panel-body" id="bar-chart">
+                    <div class="loading-text">Analyzing data...</div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Recent Energy Logs</h2>
+                </div>
+                <div class="panel-body" id="recent-logs">
+                    <div class="loading-text">Fetching logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUILDINGS -->
+    <div class="page" id="page-buildings">
+        <div class="header">
+            <div>
+                <h1>Buildings</h1>
+                <p>Infrastructure and meter distribution</p>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="table-container" id="buildings-table">
+                <div class="loading-text">Loading building registry...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- READINGS -->
+    <div class="page" id="page-logs">
+        <div class="header">
+            <div>
+                <h1>Energy Readings</h1>
+                <p>Detailed historical consumption data</p>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="table-container" id="logs-table">
+                <div class="loading-text">Retrieving records...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+        <div class="header">
+            <div>
+                <h1>System Alerts</h1>
+                <p>Threshold violations and critical updates</p>
+            </div>
+        </div>
+        <div id="alerts-list">
+            <div class="loading-text">Scanning for alerts...</div>
+        </div>
+    </div>
+
+    <!-- ADD DATA -->
+    <div class="page" id="page-add">
+        <div class="header">
+            <div>
+                <h1>Log New Reading</h1>
+                <p>Manual entry for energy consumption</p>
+            </div>
+        </div>
+        <div class="panel" style="max-width: 800px;">
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Select Meter</label>
+                        <select id="f-meter"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Energy Source</label>
+                        <select id="f-source"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Reading Date</label>
+                        <input type="date" id="f-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Units Consumed (kWh)</label>
+                        <input type="number" id="f-units" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Peak Load (kW)</label>
+                        <input type="number" id="f-peak" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="submitReading()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save Reading
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="toast" id="toast">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#10b981">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span id="toast-msg">Reading saved successfully!</span>
+</div>
+
+<script>
+    // Navigation
+    function nav(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        
+        document.getElementById('page-' + id).classList.add('active');
+        el.classList.add('active');
+        
+        // Reload data based on page
+        refreshData(id);
+    }
+
+    function refreshData(pageId) {
+        if (pageId === 'dash') {
+            loadStats();
+            loadBarChart();
+            loadRecentLogs();
+        } else if (pageId === 'buildings') {
+            loadBuildings();
+        } else if (pageId === 'logs') {
+            loadLogs();
+        } else if (pageId === 'alerts') {
+            loadAlerts();
+        } else if (pageId === 'add') {
+            loadFormDropdowns();
+        }
+    }
+
+    // API Helpers
+    async function get(url) {
+        try {
+            const r = await fetch(url);
+            return await r.json();
+        } catch (e) {
+            console.error('Fetch error:', e);
+            return null;
+        }
+    }
+
+    // Dashboard Data
+    async function loadStats() {
+        const d = await get('/api/stats');
+        if (!d) return;
+        document.getElementById('s-kwh').textContent = d.total_kwh.toLocaleString() + ' kWh';
+        document.getElementById('s-meters').textContent = d.active_meters;
+        document.getElementById('s-meters-u').textContent = `of ${d.total_meters} total meters`;
+        document.getElementById('s-peak').textContent = d.peak_kw + ' kW';
+        document.getElementById('s-alerts').textContent = d.open_alerts;
+    }
+
+    async function loadBarChart() {
+        const rows = await get('/api/consumption_by_building');
+        if (!rows) return;
+        const max = Math.max(...rows.map(r => r.total), 1);
+        const html = rows.map(r => `
+            <div class="chart-row">
+                <div class="chart-info">
+                    <span>${r.name}</span>
+                    <span class="text-muted">${parseFloat(r.total).toFixed(1)} kWh</span>
+                </div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar-fill" style="width:${Math.round(r.total/max*100)}%"></div>
+                </div>
+            </div>`).join('');
+        document.getElementById('bar-chart').innerHTML = html || '<div class="loading-text">No data available</div>';
+    }
+
+    async function loadRecentLogs() {
+        const rows = await get('/api/logs');
+        if (!rows) return;
+        const slice = rows.slice(0, 5);
+        const html = `<table>
+            <thead><tr><th>Building</th><th>kWh</th><th>Date</th></tr></thead>
+            <tbody>${slice.map(r => `
+                <tr>
+                    <td><div style="font-weight:600">${r.building}</div><div style="font-size:11px;color:var(--text-muted)">${r.source}</div></td>
+                    <td>${parseFloat(r.UnitsConsumed).toFixed(1)}</td>
+                    <td style="color:var(--text-muted)">${new Date(r.ReadingDate).toLocaleDateString()}</td>
+                </tr>`).join('')}
+            </tbody></table>`;
+        document.getElementById('recent-logs').innerHTML = html;
+    }
+
+    // Pages Data
+    async function loadBuildings() {
+        const rows = await get('/api/buildings');
+        if (!rows) return;
+        const html = `<table>
+            <thead><tr><th>Building</th><th>Location</th><th>Area</th><th>Meters</th><th>Status</th></tr></thead>
+            <tbody>${rows.map(r => `
+                <tr>
+                    <td><div style="font-weight:600">${r.BuildingName}</div><div style="font-size:11px;color:var(--text-muted)">ID: ${r.BuildingID}</div></td>
+                    <td>${r.Location}</td>
+                    <td>${parseFloat(r.TotalArea).toLocaleString()} m²</td>
+                    <td>${r.meter_count} total</td>
+                    <td><span class="badge ${r.active_meters > 0 ? 'badge-success' : 'badge-neutral'}">${r.active_meters} active</span></td>
+                </tr>`).join('')}
+            </tbody></table>`;
+        document.getElementById('buildings-table').innerHTML = html;
+    }
+
+    async function loadLogs() {
+        const rows = await get('/api/logs');
+        if (!rows) return;
+        const html = `<table>
+            <thead><tr><th>ID</th><th>Building / Meter</th><th>Source</th><th>Date</th><th>Units</th><th>Peak</th></tr></thead>
+            <tbody>${rows.map(r => `
+                <tr>
+                    <td>#${r.ReadingID}</td>
+                    <td><div style="font-weight:600">${r.building}</div><div style="font-size:11px;color:var(--text-muted)">${r.MeterType} Meter</div></td>
+                    <td><span class="badge badge-neutral">${r.source}</span></td>
+                    <td>${r.ReadingDate}</td>
+                    <td style="font-weight:600;color:var(--accent)">${parseFloat(r.UnitsConsumed).toFixed(2)} kWh</td>
+                    <td>${parseFloat(r.PeakLoad).toFixed(2)} kW</td>
+                </tr>`).join('')}
+            </tbody></table>`;
+        document.getElementById('logs-table').innerHTML = html;
+    }
+
+    async function loadAlerts() {
+        const rows = await get('/api/alerts');
+        if (!rows) return;
+        const html = rows.map(r => {
+            const isDanger = r.ActualValue > r.Threshold;
+            return `
+                <div class="alert-item">
+                    <div class="alert-icon ${isDanger ? 'badge-danger' : 'badge-warning'}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div class="alert-content">
+                        <h4>${r.building} — ${r.AlertType}</h4>
+                        <div style="margin-bottom:8px">Value of <b>${r.ActualValue} kW</b> exceeded limit of ${r.Threshold} kW</div>
+                        <div class="alert-meta">
+                            <span>${r.AlertDate}</span>
+                            <span>•</span>
+                            <span>${r.MeterType} Meter</span>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+        document.getElementById('alerts-list').innerHTML = html || '<div class="loading-text">No active alerts detected. Everything looks good!</div>';
+    }
+
+    // Form
+    async function loadFormDropdowns() {
+        const [meters, sources] = await Promise.all([get('/api/meters'), get('/api/sources')]);
+        if (!meters || !sources) return;
+        document.getElementById('f-meter').innerHTML =
+            meters.map(m => `<option value="${m.MeterID}">${m.BuildingName} — ${m.MeterType}</option>`).join('');
+        document.getElementById('f-source').innerHTML =
+            sources.map(s => `<option value="${s.SourceID}">${s.SourceType} (₹${s.UnitCostPerKWh}/kWh)</option>`).join('');
+        document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    }
+
+    async function submitReading() {
+        const body = {
+            meter_id: parseInt(document.getElementById('f-meter').value),
+            source_id: parseInt(document.getElementById('f-source').value),
+            reading_date: document.getElementById('f-date').value,
+            units_consumed: parseFloat(document.getElementById('f-units').value),
+            peak_load: parseFloat(document.getElementById('f-peak').value) || 0
+        };
+
+        if (isNaN(body.units_consumed)) {
+            alert('Please enter units consumed');
+            return;
+        }
+
+        const r = await fetch('/api/logs', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(body) 
+        });
+        const d = await r.json();
+        if (d.success) {
+            showToast('Reading saved successfully!');
+            document.getElementById('f-units').value = '';
+            document.getElementById('f-peak').value = '';
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // Init
+    window.onload = () => refreshData('dash');
+</script>
+
+</body>
+</html>
