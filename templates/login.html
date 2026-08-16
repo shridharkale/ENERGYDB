@@ -67,8 +67,8 @@
             border: 1px solid rgba(226, 232, 240, 0.7);
             box-shadow: var(--shadow-xl);
             padding: 52px 44px 44px;
-            opacity: 0;                 /* Anime.js entry — starts hidden */
-            transform: translateY(30px) scale(0.97);
+            opacity: 1;
+            transform: none;
         }
 
         /* ── Brand section ── */
@@ -428,13 +428,6 @@ orbConfigs.forEach(cfg => {
 const cardTl = anime.timeline({ easing: 'easeOutExpo' });
 
 cardTl
-    .add({
-        targets: '#login-card',
-        translateY: [30, 0],
-        opacity: [0, 1],
-        scale: [0.97, 1],
-        duration: 700,
-    })
     .add(() => {
         const staggerTargets = ['#brand-icon','#brand-title','#brand-subtitle','#fg-email','#fg-password','#login-btn','#login-footer'];
         const errorBox = document.getElementById('error-box');
@@ -447,7 +440,7 @@ cardTl
             duration: 480,
             easing: 'easeOutCubic',
         };
-    }(), '-=380'); // overlap with card animation
+    }());
 
 // ═══════════════════════════════════════════
 // 4. BRAND ICON PULSE (loop)
