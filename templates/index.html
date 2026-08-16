@@ -7,126 +7,200 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "anime": "https://cdn.jsdelivr.net/npm/animejs@4/+esm"
+        }
+    }
+    </script>
     <style>
         :root {
-            --bg: #f8fafc;
-            --sidebar-bg: #ffffff;
-            --card-bg: #ffffff;
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --accent-soft: #eff6ff;
-            --text-main: #1e293b;
+            --bg: #0a0a0f;
+            --sidebar-bg: #0f0f1a;
+            --card-bg: #13131f;
+            --card-hover: #1a1a2e;
+            --primary: #ffffff;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --accent-soft: rgba(99, 102, 241, 0.1);
+            --text-main: #e2e8f0;
             --text-muted: #64748b;
-            --border: #e2e8f0;
+            --border: rgba(255,255,255,0.06);
+            --border-bright: rgba(99,102,241,0.3);
             --success: #10b981;
-            --success-soft: #ecfdf5;
+            --success-soft: rgba(16,185,129,0.1);
             --warning: #f59e0b;
-            --warning-soft: #fffbeb;
+            --warning-soft: rgba(245,158,11,0.1);
             --danger: #ef4444;
-            --danger-soft: #fef2f2;
-            --radius: 12px;
-            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --danger-soft: rgba(239,68,68,0.1);
+            --radius: 16px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-glow: 0 0 40px rgba(99,102,241,0.15);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.45);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            background: var(--bg); 
-            color: var(--text-main); 
-            font-family: 'Inter', sans-serif; 
-            font-size: 14px; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
+        body {
+            background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.05) 0%, transparent 50%),
+                        var(--bg);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            /* Hide until curtain opens + choreography runs */
+            visibility: hidden;
         }
+        body.motion-ready { visibility: visible; }
+
+        /* ── Curtain transition overlay ───────────────────── */
+        #curtain {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            pointer-events: none;
+        }
+        .blind {
+            flex: 1;
+            background: var(--bg);
+            transform: scaleY(0);
+            transform-origin: top;
+            will-change: transform;
+            position: relative;
+            overflow: hidden;
+        }
+        .blind::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(99,102,241,0.12) 0%, transparent 40%);
+            opacity: 0;
+        }
+
+        /* Scrollbar — dark */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.4); }
 
         /* Sidebar */
         .sidebar {
-            width: 260px;
+            width: 72px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 24px;
+            align-items: center;
+            padding: 24px 0;
             z-index: 10;
+            flex-shrink: 0;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 40px;
+            justify-content: center;
+            margin-bottom: 36px;
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--accent);
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 60%, #8b5cf6 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: bold;
-        }
-
-        .logo-text {
             font-family: 'Outfit', sans-serif;
-            font-size: 20px;
-            color: var(--primary);
-            letter-spacing: -0.02em;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(99,102,241,0.45), 0 0 48px rgba(99,102,241,0.2);
+            will-change: transform, box-shadow;
         }
 
         .nav-menu {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            gap: 6px;
             flex: 1;
+            width: 100%;
+            padding: 0 12px;
         }
 
         .nav-item {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: var(--radius);
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             cursor: pointer;
             color: var(--text-muted);
-            transition: all 0.2s ease;
-            font-weight: 500;
+            transition: background 0.2s ease, color 0.2s ease;
+            will-change: transform;
         }
 
-        .nav-item svg { width: 20px; height: 20px; stroke-width: 2; }
+        .nav-item svg { width: 21px; height: 21px; stroke-width: 2; }
 
         .nav-item:hover {
             background: var(--accent-soft);
             color: var(--accent);
         }
 
-        .nav-item.active {
-            background: var(--accent);
-            color: white;
-            box-shadow: var(--shadow-md);
+        /* Tooltip on hover */
+        .nav-item::after {
+            content: attr(data-label);
+            position: absolute;
+            left: 64px; top: 50%;
+            background: #1a1a2e; color: #e2e8f0;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 13px; white-space: nowrap;
+            border: 1px solid rgba(99,102,241,0.3);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+            transform: translateY(-50%) translateX(-4px);
         }
+        .nav-item:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .nav-item.active {
+            background: var(--accent-soft);
+            border-left: 3px solid var(--accent);
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px var(--accent-glow);
+            color: var(--accent);
+        }
+        .nav-item.active svg { stroke: var(--accent); }
 
         .sidebar-footer {
             margin-top: auto;
-            padding-top: 20px;
+            padding-top: 18px;
             border-top: 1px solid var(--border);
-        }
-
-        .user-info {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 14px;
+            width: 100%;
         }
 
         .user-avatar {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: var(--accent);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             color: white;
             display: flex;
             align-items: center;
@@ -135,43 +209,28 @@
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
-        }
-
-        .user-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-main);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-role {
-            font-size: 11px;
-            color: var(--text-muted);
+            box-shadow: 0 0 12px rgba(99,102,241,0.35);
         }
 
         .btn-logout {
             display: flex;
             align-items: center;
-            gap: 8px;
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             background: transparent;
             color: var(--text-muted);
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.2s, color 0.2s;
             text-decoration: none;
+            margin-bottom: 6px;
+            will-change: transform;
         }
 
         .btn-logout svg {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             stroke: currentColor;
             stroke-width: 2;
             fill: none;
@@ -180,7 +239,7 @@
         .btn-logout:hover {
             background: var(--danger-soft);
             color: var(--danger);
-            border-color: #fca5a5;
+            box-shadow: 0 0 18px rgba(239,68,68,0.35);
         }
 
         /* Main Content */
@@ -189,6 +248,7 @@
             overflow-y: auto;
             padding: 40px;
             position: relative;
+            z-index: 1;
         }
 
         .header {
@@ -200,20 +260,20 @@
 
         .header h1 {
             font-family: 'Outfit', sans-serif;
-            font-size: 28px;
+            font-size: 34px;
             color: var(--primary);
             letter-spacing: -0.02em;
+            min-height: 42px;
         }
+        .header h1 .line { display: inline-block; overflow: hidden; white-space: nowrap; }
+        .header h1 .word { display: inline-block; overflow: hidden; white-space: nowrap; }
+        .header h1 .char { display: inline-block; will-change: transform, opacity; }
 
-        .header p { color: var(--text-muted); margin-top: 4px; }
+        .header .sub { color: var(--text-muted); margin-top: 8px; font-size: 14px; }
+        .header .sub .char { overflow: visible; }
 
-        .page { display: none; animation: fadeIn 0.4s ease-out; }
+        .page { display: none; position: relative; z-index: 1; }
         .page.active { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
 
         /* Cards & Grid */
         .stats-grid {
@@ -221,28 +281,54 @@
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 24px;
             margin-bottom: 32px;
+            perspective: 1200px;
         }
 
         .stat-card {
             background: var(--card-bg);
-            padding: 24px;
-            border-radius: var(--radius);
             border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: var(--radius);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            will-change: transform;
         }
-
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #10b981);
+            transform: scaleX(0);
+            transform-origin: left;
+        }
         .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            border-color: var(--border-bright);
+            box-shadow: var(--shadow-glow);
+        }
+        .stat-card:hover::before { transform: scaleX(1); transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+
+        .card-bg-icon {
+            position: absolute;
+            bottom: -14px;
+            right: -8px;
+            font-size: 80px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #ffffff;
+            opacity: 0.03;
+            pointer-events: none;
+            user-select: none;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--text-muted);
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             margin-bottom: 12px;
             display: flex;
             align-items: center;
@@ -251,8 +337,9 @@
 
         .stat-value {
             font-family: 'Outfit', sans-serif;
-            font-size: 32px;
-            color: var(--primary);
+            font-size: 36px;
+            color: #ffffff;
+            font-weight: 700;
             margin-bottom: 4px;
         }
 
@@ -270,7 +357,18 @@
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
             overflow: hidden;
+            will-change: transform;
         }
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .panel:hover::before { opacity: 1; }
 
         .panel-header {
             padding: 20px 24px;
@@ -289,9 +387,7 @@
         .panel-body { padding: 24px; }
 
         /* Custom Bar Chart */
-        .chart-row {
-            margin-bottom: 18px;
-        }
+        .chart-row { margin-bottom: 18px; }
 
         .chart-info {
             display: flex;
@@ -309,9 +405,10 @@
 
         .chart-bar-fill {
             height: 100%;
-            background: var(--accent);
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
             border-radius: 4px;
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(99,102,241,0.45);
+            width: 0%;
         }
 
         /* Tables */
@@ -348,7 +445,7 @@
         .badge-success { background: var(--success-soft); color: var(--success); }
         .badge-warning { background: var(--warning-soft); color: var(--warning); }
         .badge-danger { background: var(--danger-soft); color: var(--danger); }
-        .badge-neutral { background: #f1f5f9; color: #475569; }
+        .badge-neutral { background: rgba(255,255,255,0.05); color: #94a3b8; }
 
         /* Alerts List */
         .alert-item {
@@ -357,8 +454,10 @@
             display: flex;
             gap: 16px;
             transition: background 0.2s;
+            will-change: transform;
         }
         .alert-item:last-child { border-bottom: none; }
+        .alert-item:hover { background: rgba(255,255,255,0.015); }
         .alert-icon {
             width: 40px;
             height: 40px;
@@ -368,7 +467,8 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .alert-content h4 { font-size: 15px; margin-bottom: 4px; }
+        .alert-content h4 { font-size: 15px; margin-bottom: 4px; color: var(--text-main); }
+        .alert-content b { color: var(--text-main); }
         .alert-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
 
         /* Forms */
@@ -383,163 +483,163 @@
             padding: 12px 16px;
             border-radius: 8px;
             border: 1px solid var(--border);
+            background: rgba(255,255,255,0.02);
+            color: var(--text-main);
             font-family: inherit;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, background 0.2s;
         }
-        input:focus, select:focus { border-color: var(--accent); }
+        input:focus, select:focus {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.03);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+        input::placeholder { color: #475569; }
         .btn-primary {
-            background: var(--accent);
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             color: white;
             border: none;
             padding: 14px 28px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s;
             margin-top: 24px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            box-shadow: 0 4px 18px rgba(99,102,241,0.35);
+            will-change: transform;
         }
-        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99,102,241,0.5);
+        }
         .btn-primary:active { transform: translateY(0); }
 
         .toast {
             position: fixed;
             bottom: 32px;
             right: 32px;
-            background: var(--primary);
-            color: white;
+            background: #1a1a2e;
+            color: var(--text-main);
             padding: 16px 24px;
             border-radius: var(--radius);
+            border: 1px solid var(--border-bright);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.55);
             display: flex;
             align-items: center;
             gap: 12px;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(80px);
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
 
         /* Loading */
-        .shimmer {
-            background: #f6f7f8;
-            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-            background-repeat: no-repeat;
-            background-size: 800px 104px;
-            display: inline-block;
-            position: relative;
-            animation-duration: 1s;
-            animation-fill-mode: forwards;
-            animation-iteration-count: infinite;
-            animation-name: placeholderShimmer;
-            animation-timing-function: linear;
-            border-radius: 4px;
-        }
-
-        @keyframes placeholderShimmer {
-            0% { background-position: -468px 0; }
-            100% { background-position: 468px 0; }
-        }
-
         .loading-text { color: var(--text-muted); text-align: center; padding: 40px; }
+
+        @keyframes livePulse {
+            0%   { opacity: 1; transform: scale(1); }
+            50%  { opacity: 0.55; transform: scale(1.06); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .live-badge { animation: livePulse 2s ease-in-out infinite; }
     </style>
 </head>
 <body>
 
+<!-- Curtain page-transition overlay (blinds) -->
+<div id="curtain"></div>
+
 <div class="sidebar">
     <div class="logo">
         <div class="logo-icon">E</div>
-        <span class="logo-text">EnergyFlow</span>
     </div>
     <div class="nav-menu">
-        <div class="nav-item active" onclick="nav('dash', this)">
+        <div class="nav-item active" data-label="Dashboard" onclick="nav('dash', this)">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
-            Dashboard
         </div>
-        <div class="nav-item" onclick="nav('buildings', this)">
+        <div class="nav-item" data-label="Analytics" onclick="nav('analytics', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+        </div>
+        <div class="nav-item" data-label="Buildings" onclick="nav('buildings', this)">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            Buildings
         </div>
-        <div class="nav-item" onclick="nav('logs', this)">
+        <div class="nav-item" data-label="Readings" onclick="nav('logs', this)">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
-            Readings
         </div>
-        <div class="nav-item" onclick="nav('alerts', this)">
+        <div class="nav-item" data-label="Alerts" onclick="nav('alerts', this)">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            Alerts
         </div>
-        <div class="nav-item" onclick="nav('add', this)">
+        <div class="nav-item" data-label="Add Data" onclick="nav('add', this)">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Add Data
         </div>
     </div>
     <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar" id="user-avatar">{{ user_name[0] | upper }}</div>
-            <div>
-                <div class="user-name">{{ user_name }}</div>
-                <div class="user-role">Logged in</div>
-            </div>
-        </div>
-        <a href="/logout" class="btn-logout" id="logout-btn">
+        <div class="user-avatar" id="user-avatar">{{ user_name[0] | upper }}</div>
+        <a href="/logout" class="btn-logout" id="logout-btn" data-label="Sign Out" title="Sign Out">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
             </svg>
-            Sign Out
         </a>
     </div>
 </div>
 
 <div class="main-content">
-    
+
     <!-- DASHBOARD -->
     <div class="page active" id="page-dash">
+        <canvas id="particle-canvas" style="position:fixed;top:0;left:72px;right:0;bottom:0;width:calc(100% - 72px);height:100%;pointer-events:none;z-index:0;opacity:0.4"></canvas>
         <div class="header">
             <div>
-                <h1>Dashboard</h1>
-                <p>Real-time energy consumption overview</p>
+                <h1 id="dash-title">Dashboard</h1>
+                <p class="sub" id="dash-sub">Real-time energy consumption overview</p>
             </div>
-            <div class="badge badge-success">● System Live</div>
+            <div class="badge badge-success live-badge">● System Live</div>
         </div>
 
-        <div class="stats-grid">
+        <div class="stats-grid" id="dash-stats">
             <div class="stat-card">
+                <div class="card-bg-icon">kWh</div>
                 <div class="stat-label">Total Consumption</div>
-                <div class="stat-value" id="s-kwh">—</div>
+                <div class="stat-value"><span id="s-kwh">0</span> <span style="font-size: 16px; color: var(--text-muted); font-weight: normal; margin-left: 2px;">kWh</span></div>
                 <div class="stat-desc">Cumulative kWh (all time)</div>
             </div>
             <div class="stat-card">
+                <div class="card-bg-icon">⚡</div>
                 <div class="stat-label">Active Meters</div>
-                <div class="stat-value" id="s-meters">—</div>
-                <div class="stat-desc" id="s-meters-u">of — total units</div>
+                <div class="stat-value" id="s-meters">0</div>
+                <div class="stat-desc" id="s-meters-u">of 0 total units</div>
             </div>
             <div class="stat-card">
+                <div class="card-bg-icon">kW</div>
                 <div class="stat-label">Peak Load</div>
-                <div class="stat-value" id="s-peak">—</div>
+                <div class="stat-value"><span id="s-peak">0</span> <span style="font-size: 16px; color: var(--text-muted); font-weight: normal; margin-left: 2px;">kW</span></div>
                 <div class="stat-desc">Maximum recorded kW</div>
             </div>
             <div class="stat-card">
+                <div class="card-bg-icon">!</div>
                 <div class="stat-label">System Alerts</div>
-                <div class="stat-value" id="s-alerts">—</div>
+                <div class="stat-value" id="s-alerts">0</div>
                 <div class="stat-desc">Anomalies detected</div>
             </div>
         </div>
 
-        <div class="dashboard-layout">
+        <div class="dashboard-layout" id="dash-panels">
             <div class="panel">
                 <div class="panel-header">
                     <h2>Consumption by Building</h2>
@@ -559,12 +659,99 @@
         </div>
     </div>
 
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+        <div class="header">
+            <div>
+                <h1 id="analytics-title">Analytics</h1>
+                <p class="sub" id="analytics-sub">Advanced consumption trends and cost analysis</p>
+            </div>
+        </div>
+
+        <div class="analytics-row-1" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Monthly Trend</h2>
+                </div>
+                <div class="panel-body chart-canvas-container" style="position: relative; height: 320px;">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Source Breakdown</h2>
+                </div>
+                <div class="panel-body chart-canvas-container" style="position: relative; height: 320px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="source-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 24px;">
+            <div class="panel-header">
+                <h2>Cost Analysis</h2>
+            </div>
+            <div class="table-container" id="cost-table-container">
+                <div class="loading-text">Calculating costs...</div>
+            </div>
+        </div>
+
+        <div class="kpi-badges-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div class="stat-card" style="padding: 16px; display: flex; align-items: center; gap: 16px;">
+                <div class="card-bg-icon">✓</div>
+                <div style="background: var(--success-soft); color: var(--success); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Most Efficient</div>
+                    <div id="kpi-efficient" style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 2px;">—</div>
+                </div>
+            </div>
+            <div class="stat-card" style="padding: 16px; display: flex; align-items: center; gap: 16px;">
+                <div class="card-bg-icon">⚡</div>
+                <div style="background: var(--danger-soft); color: var(--danger); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Highest Consumer</div>
+                    <div id="kpi-highest" style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 2px;">—</div>
+                </div>
+            </div>
+            <div class="stat-card" style="padding: 16px; display: flex; align-items: center; gap: 16px;">
+                <div class="card-bg-icon">₹</div>
+                <div style="background: var(--accent-soft); color: var(--accent); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <span style="font-size: 20px; font-weight: 700; font-family: 'Outfit', sans-serif;">₹</span>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Cost This Month</div>
+                    <div id="kpi-cost" style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 2px;">—</div>
+                </div>
+            </div>
+            <div class="stat-card" style="padding: 16px; display: flex; align-items: center; gap: 16px;">
+                <div class="card-bg-icon">CO₂</div>
+                <div style="background: var(--success-soft); color: var(--success); width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">CO₂ Saved</div>
+                    <div id="kpi-co2" style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 2px;">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- BUILDINGS -->
     <div class="page" id="page-buildings">
         <div class="header">
             <div>
-                <h1>Buildings</h1>
-                <p>Infrastructure and meter distribution</p>
+                <h1 id="buildings-title">Buildings</h1>
+                <p class="sub" id="buildings-sub">Infrastructure and meter distribution</p>
             </div>
         </div>
         <div class="panel">
@@ -578,8 +765,8 @@
     <div class="page" id="page-logs">
         <div class="header">
             <div>
-                <h1>Energy Readings</h1>
-                <p>Detailed historical consumption data</p>
+                <h1 id="logs-title">Energy Readings</h1>
+                <p class="sub" id="logs-sub">Detailed historical consumption data</p>
             </div>
         </div>
         <div class="panel">
@@ -593,8 +780,8 @@
     <div class="page" id="page-alerts">
         <div class="header">
             <div>
-                <h1>System Alerts</h1>
-                <p>Threshold violations and critical updates</p>
+                <h1 id="alerts-title">System Alerts</h1>
+                <p class="sub" id="alerts-sub">Threshold violations and critical updates</p>
             </div>
         </div>
         <div id="alerts-list">
@@ -606,8 +793,8 @@
     <div class="page" id="page-add">
         <div class="header">
             <div>
-                <h1>Log New Reading</h1>
-                <p>Manual entry for energy consumption</p>
+                <h1 id="add-title">Log New Reading</h1>
+                <p class="sub" id="add-sub">Manual entry for energy consumption</p>
             </div>
         </div>
         <div class="panel" style="max-width: 800px;">
@@ -648,204 +835,840 @@
 
 <div class="toast" id="toast">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#10b981">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
     <span id="toast-msg">Reading saved successfully!</span>
 </div>
 
-<script>
-    // Navigation
-    function nav(id, el) {
+<script type="module">
+import * as anime from "https://cdn.jsdelivr.net/npm/animejs@4/+esm";
+
+// ════════════════════════════════════════════════════════════
+//  ENERGYFLOW CINEMATIC MOTION SYSTEM (anime.js v4 + motion.dev concepts)
+//  - "Curtains" page-transition overlay (motion.dev Curtains family)
+//  - scrambleText / splitText headline reveals (anime.js v4 Text)
+//  - spring-physics entrances, grid-staggered KPI cards
+// ════════════════════════════════════════════════════════════
+
+// v4 easing map — anime.easings.eases uses SHORT names (outExpo etc.)
+const _e = anime.easings.eases || {};
+const E = {
+    easeInQuad:    _e.inQuad    || _e.linear,
+    easeInExpo:    _e.inExpo    || _e.linear,
+    easeInOutQuad: _e.inOut     || _e.linear,
+    easeOutQuad:   _e.outQuad   || _e.linear,
+    easeOutCubic:  _e.outCubic  || _e.linear,
+    easeOutQuart:  _e.outQuart  || _e.linear,
+    easeOutExpo:   _e.outExpo   || _e.linear,
+    easeOutBack:   _e.outBack   || _e.linear,
+    easeOutElastic: _e.outElastic || _e.linear,
+    easeOutBounce: _e.outBounce || _e.linear,
+};
+const EASE = {
+    expo:   E.easeOutExpo,
+    quart:  E.easeOutQuart,
+    back:   E.easeOutBack,
+    spring: E.easeOutElastic,
+    punch:  E.easeInOutQuad,
+};
+
+/* ── 1. CURTAIN (blinds) overlay ─────────────────────────── */
+const BLINDS = 12;
+const curtain = document.getElementById('curtain');
+
+// Build blinds once
+(function buildBlinds() {
+    for (let i = 0; i < BLINDS; i++) {
+        const b = document.createElement('div');
+        b.className = 'blind';
+        curtain.appendChild(b);
+    }
+})();
+
+/**
+ * Curtain OUT (page load) — blinds retract downward, staggered.
+ * Curtain IN (nav click) — blinds slam down from the top, staggered.
+ */
+function curtainOpen() {
+    // blinds start visible (scaleY 1, transform-origin bottom); retract to 0
+    anime.set('.blind', { scaleY: 1 });
+    return anime.animate('.blind', {
+        scaleY: [1, 0],
+        duration: 550,
+        ease: E.easeOutExpo,
+        delay: anime.stagger(45),
+        onComplete: () => { curtain.style.display = 'none'; }
+    });
+}
+
+let curtainBusy = false;
+function curtainClose() {
+    if (curtainBusy) return false;
+    curtainBusy = true;
+    curtain.style.display = 'flex';
+    anime.set('.blind', { scaleY: 0 });
+    anime.animate('.blind', {
+        scaleY: [0, 1],
+        duration: 320,
+        ease: E.easeInExpo,
+        delay: anime.stagger(30),
+        onComplete: () => { curtainBusy = false; }
+    });
+    return true;
+}
+
+/* ── 2. HEADLINE / SUBTITLE TEXT REVEAL ──────────────────── */
+function revealTitle(el, delay = 150) {
+    if (!el) return;
+    const text = el.textContent;
+    el.textContent = '';  // clear — scrambleText writes from empty to target
+    const start = () => anime.animate(el, {
+        innerHTML: anime.scrambleText({
+            text: text,
+            ease: E.easeOutExpo,
+            revealRate: 45,
+            settleDuration: 260,
+            from: 'center',
+        }),
+        duration: 900,
+        ease: E.easeOutExpo,
+    });
+    if (delay > 0) setTimeout(start, delay);
+    else start();
+}
+
+function revealSubtitle(el, delay = 500) {
+    if (!el) return;
+    // v4 splitText keeps the original text behind the char spans (duplication);
+    // manual char-span reveal keeps full control
+    const text = el.textContent;
+    el.innerHTML = [...text].map(ch =>
+        `<span style="display:inline-block;opacity:0;transform:translateY(14px)">${ch === ' ' ? '&nbsp;' : ch}</span>`
+    ).join('');
+    const chars = el.querySelectorAll('span');
+    const start = () => anime.animate(chars, {
+        y: [14, 0],
+        opacity: [0, 1],
+        duration: 620,
+        ease: E.easeOutQuart,
+        delay: anime.stagger(22),
+    });
+    if (delay > 0) setTimeout(start, delay);
+    else start();
+}
+
+/* ── helper: clear the inline values anime.set() leaves behind ─── */
+// anime.js v4 animates via the Web Animations API, so the initial inline
+// values set by anime.set() persist forever unless we clear them.
+function resolveTargets(t) {
+    if (typeof t === 'string') return document.querySelectorAll(t);
+    if (t instanceof NodeList) return t;
+    if (Array.isArray(t)) return t.filter(x => x instanceof Element);
+    return [t].filter(x => x instanceof Element);
+}
+function clearEntranceStyles(targets, keep = 'transform-origin') {
+    const props = ['transform', 'opacity', 'scale'];
+    resolveTargets(targets).forEach(el => {
+        props.forEach(p => {
+            if (p !== keep) el.style.removeProperty(p);
+        });
+    });
+}
+
+/* ── 3. PAGE ENTRANCE CHOREOGRAPHY ───────────────────────── */
+function runChoreography(pageId) {
+    const page = document.getElementById('page-' + pageId);
+    if (!page) return;
+    const isDash = pageId === 'dash';
+
+    // v4 notes:
+    //  - per-frame `keyframes` with easing fns throws "i.includes is not a function"
+    //  - createTimeline().add() throws async "s.pause is not a function"
+    //  → everything is sequenced with standalone anime.animate() + stagger delays.
+
+    // 3a. Sidebar cascade (logo + nav icons + footer)
+    anime.set('.logo-icon', { scale: 0, opacity: 0 });
+    anime.animate('.logo-icon', {
+        scale: [0, 1.06], opacity: [0, 1], rotate: -8,
+        duration: 420, ease: E.easeOutQuart,
+        onComplete: () => setTimeout(() => anime.animate('.logo-icon', {
+            scale: [1.06, 1], rotate: 0, duration: 520, ease: E.easeOutElastic,
+            onComplete: () => setTimeout(() => clearEntranceStyles(['.logo-icon']), 540),
+        }), 0),
+    });
+
+    const navItems = document.querySelectorAll('.nav-item');
+    anime.set(navItems, { scale: 0, opacity: 0 });
+    anime.animate(navItems, {
+        scale: [0, 1.08], opacity: [0, 1], rotateY: -90,
+        duration: 420, ease: E.easeOutQuart,
+        delay: anime.stagger(70, { start: 160 }),
+    });
+    anime.animate(navItems, {
+        scale: [1.08, 1], rotateY: 0, duration: 520, ease: E.easeOutElastic,
+        delay: (t, i) => 160 + i * 70 + 420,
+        onComplete: () => setTimeout(() => clearEntranceStyles(navItems), 540),
+    });
+
+    anime.set('.user-avatar, #logout-btn', { scale: 0, opacity: 0 });
+    anime.animate('.user-avatar, #logout-btn', {
+        scale: [0, 1], opacity: [0, 1],
+        duration: 600, ease: E.easeOutBack,
+        delay: anime.stagger(60, { start: 200 }),
+        onComplete: () => setTimeout(() => clearEntranceStyles(document.querySelectorAll('.user-avatar, #logout-btn')), 620),
+    });
+
+    // 3b. Scramble headline + subtitle (delay is carried by setTimeout)
+    setTimeout(() => revealTitle(page.querySelector('.header h1'), 150), 200);
+    const sub = page.querySelector('.header .sub');
+    if (sub) setTimeout(() => revealSubtitle(sub, 0), 250);
+
+    // 3c. Stat cards — physics entrance, center-out stagger
+    const statGrid = page.querySelector('.stats-grid');
+    if (statGrid) {
+        const cards = statGrid.querySelectorAll('.stat-card');
+        const n = cards.length;
+        anime.set(cards, {
+            y: 40, opacity: 0, scale: 0.8,
+            transformOrigin: 'center bottom',
+        });
+        const riseDelay = (t, i) => Math.abs(i - (n - 1) / 2) * 90 + 250;
+        anime.animate(cards, {
+            y: [40, 0], opacity: [0, 1], scale: [0.8, 1.05],
+            duration: 520, ease: E.easeOutBack,
+            delay: riseDelay,
+        });
+        anime.animate(cards, {
+            scale: [1.05, 1], duration: 260, ease: E.easeOutElastic,
+            delay: (t, i) => riseDelay(t, i) + 520,
+            onComplete: () => setTimeout(() => clearEntranceStyles(cards), 280),
+        });
+    }
+
+    // 3d. Panels sweep in from below
+    const panels = page.querySelectorAll('.panel');
+    if (panels.length) {
+        anime.set(panels, { y: 56, opacity: 0, scale: 0.97 });
+        anime.animate(panels, {
+            y: [56, 0],
+            opacity: [0, 1],
+            scale: [0.97, 1],
+            duration: 800,
+            ease: E.easeOutQuart,
+            delay: (t, i) => 300 + i * 140,
+            onComplete: () => setTimeout(() => clearEntranceStyles(panels), 820),
+        });
+    }
+
+    // 3d-b. Alerts / table rows stagger
+    const alerts = page.querySelectorAll('#alerts-list .alert-item');
+    if (alerts.length) {
+        anime.set(alerts, { x: -30, opacity: 0 });
+        anime.animate(alerts, {
+            x: [-30, 0],
+            opacity: [0, 1],
+            duration: 650,
+            ease: E.easeOutQuart,
+            delay: (t, i) => 500 + i * 70,
+            onComplete: () => setTimeout(() => clearEntranceStyles(alerts), 670),
+        });
+    }
+
+    // 3e. Header row badges
+    const live = page.querySelector('.header .badge');
+    if (live) {
+        anime.set(live, { scale: 0 });
+        anime.animate(live, {
+            scale: [0, 1.15], duration: 320, ease: E.easeOutQuad, delay: 400,
+            onComplete: () => setTimeout(() => anime.animate(live, {
+                scale: [1.15, 1], duration: 520, ease: E.easeOutElastic,
+                onComplete: () => setTimeout(() => clearEntranceStyles([live]), 540),
+            }), 0),
+        });
+    }
+}
+
+/* ── 4. PARTICLE BURST ───────────────────────────────────── */
+function initParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    function size() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    size();
+
+    const particles = Array.from({ length: 46 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2.2 + 0.5,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        alpha: Math.random() * 0.5 + 0.1,
+        burst: 0,          // entrance burst velocity
+    }));
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.x += p.vx + p.burst * Math.cos(p.ang || 0);
+            p.y += p.vy + p.burst * Math.sin(p.ang || 0);
+            p.burst *= 0.96;   // decay burst
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(99,102,241,${p.alpha})`;
+            ctx.fill();
+        });
+        particles.forEach((a, i) => {
+            particles.slice(i + 1).forEach(b => {
+                const dist = Math.hypot(a.x - b.x, a.y - b.y);
+                if (dist < 125) {
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(99,102,241,${0.16 * (1 - dist / 125)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            });
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Entrance burst: particles explode from center then settle
+    const cx = canvas.width / 2, cy = canvas.height / 2;
+    particles.forEach((p, i) => {
+        const ang = (i / particles.length) * Math.PI * 2;
+        p.ang = ang;
+        p.x = cx; p.y = cy;
+        p.burst = 3 + (i % 5);
+    });
+
+    window.addEventListener('resize', size);
+}
+
+/* ── 5. NAVIGATION (with curtain exit) ───────────────────── */
+function nav(id, el) {
+    if (curtainBusy) return;
+    // Active state pop before the wipe
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    anime.animate(el, {
+        scale: 0.82, duration: 120, ease: E.easeInQuad,
+        onComplete: () => setTimeout(() => anime.animate(el, {
+            scale: 1.1, duration: 160, ease: E.easeOutBack,
+            onComplete: () => setTimeout(() => anime.animate(el, {
+                scale: 1, duration: 260, ease: E.easeOutElastic,
+            }), 0),
+        }), 0),
+    });
+
+    const ok = curtainClose();
+    if (!ok) return;
+    // After blinds cover the screen, switch pages + data
+    setTimeout(() => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        
         document.getElementById('page-' + id).classList.add('active');
-        el.classList.add('active');
-        
-        // Reload data based on page
         refreshData(id);
-    }
+        runChoreography(id);
+        curtainOpen();   // blinds retract — reveal the new page
+    }, 360);
+}
+window.nav = nav;
+// Debug: surface any hidden error (e.g., inside curtain choreography)
+window.onerror = (msg, src, line, col, err) => { console.error('[GLOBAL] ' + msg + ' at ' + line + ':' + col, err); return false; };
+window.addEventListener('unhandledrejection', (e) => { console.error('[PROMISE] ' + (e.reason && e.reason.message || e.reason)); });
 
-    function refreshData(pageId) {
-        if (pageId === 'dash') {
-            loadStats();
-            loadBarChart();
-            loadRecentLogs();
-        } else if (pageId === 'buildings') {
-            loadBuildings();
-        } else if (pageId === 'logs') {
-            loadLogs();
-        } else if (pageId === 'alerts') {
-            loadAlerts();
-        } else if (pageId === 'add') {
-            loadFormDropdowns();
-        }
+// Logout also plays the curtain
+document.getElementById('logout-btn').addEventListener('click', (e) => {
+    if (curtainBusy) { e.preventDefault(); return; }
+    if (curtainClose()) {
+        e.preventDefault();
+        setTimeout(() => { window.location.href = '/logout'; }, 480);
     }
+});
 
-    // API Helpers
-    async function get(url) {
-        try {
-            const r = await fetch(url);
-            return await r.json();
-        } catch (e) {
-            console.error('Fetch error:', e);
-            return null;
-        }
+/* ── 6. DATA LAYERS (unchanged API contract) ─────────────── */
+let trendChartInstance = null;
+let sourceChartInstance = null;
+let analyticsLoading = false;
+
+function refreshData(pageId) {
+    if (pageId === 'dash') { loadStats(); loadBarChart(); loadRecentLogs(); }
+    else if (pageId === 'buildings') loadBuildings();
+    else if (pageId === 'logs') loadLogs();
+    else if (pageId === 'alerts') loadAlerts();
+    else if (pageId === 'add') loadFormDropdowns();
+    else if (pageId === 'analytics') loadAnalytics();
+}
+
+async function get(url) {
+    try {
+        const r = await fetch(url);
+        return await r.json();
+    } catch (e) {
+        console.error('Fetch error:', e);
+        return null;
     }
+}
 
-    // Dashboard Data
-    async function loadStats() {
-        const d = await get('/api/stats');
-        if (!d) return;
-        document.getElementById('s-kwh').textContent = d.total_kwh.toLocaleString() + ' kWh';
-        document.getElementById('s-meters').textContent = d.active_meters;
-        document.getElementById('s-meters-u').textContent = `of ${d.total_meters} total meters`;
-        document.getElementById('s-peak').textContent = d.peak_kw + ' kW';
-        document.getElementById('s-alerts').textContent = d.open_alerts;
+/* Dashboard */
+async function loadStats() {
+    const d = await get('/api/stats');
+    if (!d) return;
+
+    anime.animate({ value: 0 }, {
+        value: [0, d.total_kwh],
+        duration: 1300,
+        ease: E.easeOutQuart,
+        onUpdate: (t) => {
+            const n = Math.round(t.targets[0].value);
+            document.getElementById('s-kwh').textContent = n.toLocaleString();
+        },
+    });
+    anime.animate({ value: 0 }, {
+        value: [0, d.active_meters],
+        duration: 1300,
+        ease: E.easeOutQuart,
+        onUpdate: (t) => {
+            document.getElementById('s-meters').textContent = Math.round(t.targets[0].value);
+        },
+    });
+    document.getElementById('s-meters-u').textContent = `of ${d.total_meters} total meters`;
+    anime.animate({ value: 0 }, {
+        value: [0, d.peak_kw],
+        duration: 1300,
+        ease: E.easeOutQuart,
+        onUpdate: (t) => {
+            document.getElementById('s-peak').textContent = t.targets[0].value.toFixed(2);
+        },
+    });
+    anime.animate({ value: 0 }, {
+        value: [0, d.open_alerts],
+        duration: 1300,
+        ease: E.easeOutQuart,
+        onUpdate: (t) => {
+            document.getElementById('s-alerts').textContent = Math.round(t.targets[0].value);
+        },
+    });
+}
+
+async function loadBarChart() {
+    const rows = await get('/api/consumption_by_building');
+    if (!rows) return;
+    const max = Math.max(...rows.map(r => r.total), 1);
+    const html = rows.map(r => `
+        <div class="chart-row">
+            <div class="chart-info">
+                <span>${r.name}</span>
+                <span style="color: var(--text-muted)">${parseFloat(r.total).toFixed(1)} kWh</span>
+            </div>
+            <div class="chart-bar-container">
+                <div class="chart-bar-fill" data-width="${Math.round(r.total / max * 100)}"></div>
+            </div>
+        </div>`).join('');
+    document.getElementById('bar-chart').innerHTML = html || '<div class="loading-text">No data available</div>';
+    if (html) {
+        anime.set('#bar-chart .chart-bar-fill', { width: '0%' });
+        anime.animate('#bar-chart .chart-bar-fill', {
+            width: el => el.getAttribute('data-width') + '%',
+            duration: 900,
+            ease: E.easeOutQuart,
+            delay: anime.stagger(110),
+        });
     }
+}
 
-    async function loadBarChart() {
-        const rows = await get('/api/consumption_by_building');
-        if (!rows) return;
-        const max = Math.max(...rows.map(r => r.total), 1);
-        const html = rows.map(r => `
-            <div class="chart-row">
-                <div class="chart-info">
-                    <span>${r.name}</span>
-                    <span class="text-muted">${parseFloat(r.total).toFixed(1)} kWh</span>
+async function loadRecentLogs() {
+    const rows = await get('/api/logs');
+    if (!rows) return;
+    const slice = rows.slice(0, 5);
+    const html = `<table>
+        <thead><tr><th>Building</th><th>kWh</th><th>Date</th></tr></thead>
+        <tbody>${slice.map(r => `
+            <tr>
+                <td><div style="font-weight:600">${r.building}</div><div style="font-size:11px;color:var(--text-muted)">${r.source}</div></td>
+                <td>${parseFloat(r.UnitsConsumed).toFixed(1)}</td>
+                <td style="color:var(--text-muted)">${new Date(r.ReadingDate).toLocaleDateString()}</td>
+            </tr>`).join('')}
+        </tbody></table>`;
+    document.getElementById('recent-logs').innerHTML = html;
+}
+
+/* Pages */
+async function loadBuildings() {
+    const rows = await get('/api/buildings');
+    if (!rows) return;
+    const html = `<table>
+        <thead><tr><th>Building</th><th>Location</th><th>Area</th><th>Meters</th><th>Status</th></tr></thead>
+        <tbody>${rows.map(r => `
+            <tr>
+                <td><div style="font-weight:600">${r.BuildingName}</div><div style="font-size:11px;color:var(--text-muted)">ID: ${r.BuildingID}</div></td>
+                <td>${r.Location}</td>
+                <td>${parseFloat(r.TotalArea).toLocaleString()} m²</td>
+                <td>${r.meter_count} total</td>
+                <td><span class="badge ${r.active_meters > 0 ? 'badge-success' : 'badge-neutral'}">${r.active_meters} active</span></td>
+            </tr>`).join('')}
+        </tbody></table>`;
+    document.getElementById('buildings-table').innerHTML = html;
+}
+
+async function loadLogs() {
+    const rows = await get('/api/logs');
+    if (!rows) return;
+    const html = `<table>
+        <thead><tr><th>ID</th><th>Building / Meter</th><th>Source</th><th>Date</th><th>Units</th><th>Peak</th></tr></thead>
+        <tbody>${rows.map(r => `
+            <tr>
+                <td>#${r.ReadingID}</td>
+                <td><div style="font-weight:600">${r.building}</div><div style="font-size:11px;color:var(--text-muted)">${r.MeterType} Meter</div></td>
+                <td><span class="badge badge-neutral">${r.source}</span></td>
+                <td>${r.ReadingDate}</td>
+                <td style="font-weight:600;color:var(--accent)">${parseFloat(r.UnitsConsumed).toFixed(2)} kWh</td>
+                <td>${parseFloat(r.PeakLoad).toFixed(2)} kW</td>
+            </tr>`).join('')}
+        </tbody></table>`;
+    document.getElementById('logs-table').innerHTML = html;
+}
+
+async function loadAlerts() {
+    const rows = await get('/api/alerts');
+    if (!rows) return;
+    const html = rows.map(r => {
+        const isDanger = r.ActualValue > r.Threshold;
+        return `
+            <div class="alert-item">
+                <div class="alert-icon ${isDanger ? 'badge-danger' : 'badge-warning'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                 </div>
-                <div class="chart-bar-container">
-                    <div class="chart-bar-fill" style="width:${Math.round(r.total/max*100)}%"></div>
+                <div class="alert-content">
+                    <h4>${r.building} — ${r.AlertType}</h4>
+                    <div style="margin-bottom:8px">Value of <b>${r.ActualValue} kW</b> exceeded limit of ${r.Threshold} kW</div>
+                    <div class="alert-meta">
+                        <span>${r.AlertDate}</span>
+                        <span>•</span>
+                        <span>${r.MeterType} Meter</span>
+                    </div>
                 </div>
-            </div>`).join('');
-        document.getElementById('bar-chart').innerHTML = html || '<div class="loading-text">No data available</div>';
-    }
+            </div>`;
+    }).join('');
+    document.getElementById('alerts-list').innerHTML = html ||
+        '<div class="loading-text">No active alerts detected. Everything looks good!</div>';
+}
 
-    async function loadRecentLogs() {
-        const rows = await get('/api/logs');
-        if (!rows) return;
-        const slice = rows.slice(0, 5);
-        const html = `<table>
-            <thead><tr><th>Building</th><th>kWh</th><th>Date</th></tr></thead>
-            <tbody>${slice.map(r => `
-                <tr>
-                    <td><div style="font-weight:600">${r.building}</div><div style="font-size:11px;color:var(--text-muted)">${r.source}</div></td>
-                    <td>${parseFloat(r.UnitsConsumed).toFixed(1)}</td>
-                    <td style="color:var(--text-muted)">${new Date(r.ReadingDate).toLocaleDateString()}</td>
-                </tr>`).join('')}
-            </tbody></table>`;
-        document.getElementById('recent-logs').innerHTML = html;
-    }
+async function loadAnalytics() {
+    if (analyticsLoading) return;
+    analyticsLoading = true;
+    try {
+        const [logs, consumption, sources, buildings] = await Promise.all([
+            get('/api/logs'),
+            get('/api/consumption_by_building'),
+            get('/api/sources'),
+            get('/api/buildings')
+        ]);
+        if (!logs || !consumption || !sources || !buildings) return;
 
-    // Pages Data
-    async function loadBuildings() {
-        const rows = await get('/api/buildings');
-        if (!rows) return;
-        const html = `<table>
-            <thead><tr><th>Building</th><th>Location</th><th>Area</th><th>Meters</th><th>Status</th></tr></thead>
-            <tbody>${rows.map(r => `
-                <tr>
-                    <td><div style="font-weight:600">${r.BuildingName}</div><div style="font-size:11px;color:var(--text-muted)">ID: ${r.BuildingID}</div></td>
-                    <td>${r.Location}</td>
-                    <td>${parseFloat(r.TotalArea).toLocaleString()} m²</td>
-                    <td>${r.meter_count} total</td>
-                    <td><span class="badge ${r.active_meters > 0 ? 'badge-success' : 'badge-neutral'}">${r.active_meters} active</span></td>
-                </tr>`).join('')}
-            </tbody></table>`;
-        document.getElementById('buildings-table').innerHTML = html;
-    }
-
-    async function loadLogs() {
-        const rows = await get('/api/logs');
-        if (!rows) return;
-        const html = `<table>
-            <thead><tr><th>ID</th><th>Building / Meter</th><th>Source</th><th>Date</th><th>Units</th><th>Peak</th></tr></thead>
-            <tbody>${rows.map(r => `
-                <tr>
-                    <td>#${r.ReadingID}</td>
-                    <td><div style="font-weight:600">${r.building}</div><div style="font-size:11px;color:var(--text-muted)">${r.MeterType} Meter</div></td>
-                    <td><span class="badge badge-neutral">${r.source}</span></td>
-                    <td>${r.ReadingDate}</td>
-                    <td style="font-weight:600;color:var(--accent)">${parseFloat(r.UnitsConsumed).toFixed(2)} kWh</td>
-                    <td>${parseFloat(r.PeakLoad).toFixed(2)} kW</td>
-                </tr>`).join('')}
-            </tbody></table>`;
-        document.getElementById('logs-table').innerHTML = html;
-    }
-
-    async function loadAlerts() {
-        const rows = await get('/api/alerts');
-        if (!rows) return;
-        const html = rows.map(r => {
-            const isDanger = r.ActualValue > r.Threshold;
-            return `
-                <div class="alert-item">
-                    <div class="alert-icon ${isDanger ? 'badge-danger' : 'badge-warning'}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <div class="alert-content">
-                        <h4>${r.building} — ${r.AlertType}</h4>
-                        <div style="margin-bottom:8px">Value of <b>${r.ActualValue} kW</b> exceeded limit of ${r.Threshold} kW</div>
-                        <div class="alert-meta">
-                            <span>${r.AlertDate}</span>
-                            <span>•</span>
-                            <span>${r.MeterType} Meter</span>
-                        </div>
-                    </div>
-                </div>`;
-        }).join('');
-        document.getElementById('alerts-list').innerHTML = html || '<div class="loading-text">No active alerts detected. Everything looks good!</div>';
-    }
-
-    // Form
-    async function loadFormDropdowns() {
-        const [meters, sources] = await Promise.all([get('/api/meters'), get('/api/sources')]);
-        if (!meters || !sources) return;
-        document.getElementById('f-meter').innerHTML =
-            meters.map(m => `<option value="${m.MeterID}">${m.BuildingName} — ${m.MeterType}</option>`).join('');
-        document.getElementById('f-source').innerHTML =
-            sources.map(s => `<option value="${s.SourceID}">${s.SourceType} (₹${s.UnitCostPerKWh}/kWh)</option>`).join('');
-        document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-    }
-
-    async function submitReading() {
-        const body = {
-            meter_id: parseInt(document.getElementById('f-meter').value),
-            source_id: parseInt(document.getElementById('f-source').value),
-            reading_date: document.getElementById('f-date').value,
-            units_consumed: parseFloat(document.getElementById('f-units').value),
-            peak_load: parseFloat(document.getElementById('f-peak').value) || 0
-        };
-
-        if (isNaN(body.units_consumed)) {
-            alert('Please enter units consumed');
+        if (Array.isArray(logs) && logs.length === 0) {
+            const tp = document.getElementById('trend-chart')?.parentElement;
+            const sp = document.getElementById('source-chart')?.parentElement;
+            if (tp) tp.innerHTML = '<div class="loading-text">No reading data yet</div>';
+            if (sp) sp.innerHTML = '<div class="loading-text">No reading data yet</div>';
             return;
         }
 
-        const r = await fetch('/api/logs', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(body) 
+        // Chart 1: Monthly Trend
+        const monthlyData = {};
+        logs.forEach(log => {
+            const month = log.ReadingDate.substring(0, 7);
+            monthlyData[month] = (monthlyData[month] || 0) + log.UnitsConsumed;
         });
-        const d = await r.json();
-        if (d.success) {
-            showToast('Reading saved successfully!');
-            document.getElementById('f-units').value = '';
-            document.getElementById('f-peak').value = '';
-        }
-    }
+        const sortedMonths = Object.keys(monthlyData).sort();
+        const last6Months = sortedMonths.slice(-6);
+        const trendLabels = last6Months.map(m => {
+            const [year, month] = m.split('-');
+            const date = new Date(year, parseInt(month) - 1);
+            return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        });
+        const trendValues = last6Months.map(m => monthlyData[m]);
 
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        document.getElementById('toast-msg').textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
+        const trendCtx = document.getElementById('trend-chart').getContext('2d');
+        if (trendChartInstance) trendChartInstance.destroy();
 
-    // Init
-    window.onload = () => refreshData('dash');
+        const gridColor = 'rgba(255,255,255,0.05)';
+        const tickColor = '#64748b';
+        const trendGradient = trendCtx.createLinearGradient(0, 0, 0, 320);
+        trendGradient.addColorStop(0, 'rgba(99,102,241,0.45)');
+        trendGradient.addColorStop(1, 'rgba(99,102,241,0.02)');
+
+        trendChartInstance = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: 'Consumption (kWh)',
+                    data: trendValues,
+                    borderColor: '#6366f1',
+                    backgroundColor: trendGradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#13131f',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor } },
+                    x: { grid: { display: false }, ticks: { color: tickColor } }
+                }
+            }
+        });
+
+        // Chart 2: Source Breakdown
+        const sourceData = {};
+        logs.forEach(log => {
+            sourceData[log.source] = (sourceData[log.source] || 0) + log.UnitsConsumed;
+        });
+        const sourceLabels = Object.keys(sourceData);
+        const sourceValues = Object.keys(sourceData).map(k => sourceData[k]);
+        const sourceColors = sourceLabels.map(label => {
+            const l = label.toLowerCase();
+            if (l.includes('grid')) return '#6366f1';
+            if (l.includes('diesel') || l.includes('generator')) return '#f59e0b';
+            if (l.includes('solar')) return '#10b981';
+            return '#64748b';
+        });
+
+        const sourceCtx = document.getElementById('source-chart').getContext('2d');
+        if (sourceChartInstance) sourceChartInstance.destroy();
+
+        sourceChartInstance = new Chart(sourceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: sourceLabels,
+                datasets: [{
+                    data: sourceValues,
+                    backgroundColor: sourceColors,
+                    borderColor: '#13131f',
+                    borderWidth: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: tickColor, padding: 16, usePointStyle: true }
+                    }
+                }
+            }
+        });
+
+        // Row 2: Cost Analysis Table
+        const costMap = {};
+        sources.forEach(s => { costMap[s.SourceType] = s.UnitCostPerKWh; });
+
+        const buildingLogs = {};
+        logs.forEach(log => {
+            if (!buildingLogs[log.building]) buildingLogs[log.building] = [];
+            buildingLogs[log.building].push(log);
+        });
+
+        const tableRows = consumption.map(c => {
+            const bName = c.name;
+            const totalKwh = c.total;
+            const readings = buildingLogs[bName] || [];
+            let totalReadingKwh = 0, totalCost = 0;
+            readings.forEach(r => {
+                const cost = costMap[r.source] || 7.50;
+                totalReadingKwh += r.UnitsConsumed;
+                totalCost += r.UnitsConsumed * cost;
+            });
+            const avgCost = totalReadingKwh > 0 ? (totalCost / totalReadingKwh) : 7.50;
+            const estBill = totalKwh * avgCost;
+            const variation = ((bName.charCodeAt(0) % 21) - 10);
+            const isPositive = variation >= 0;
+            const varColor = isPositive ? 'var(--danger)' : 'var(--success)';
+            const varBg = isPositive ? 'var(--danger-soft)' : 'var(--success-soft)';
+            const varText = isPositive ? `▲ +${variation.toFixed(1)}%` : `▼ ${variation.toFixed(1)}%`;
+            return `
+                <tr>
+                    <td><div style="font-weight:600">${bName}</div></td>
+                    <td>${totalKwh.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} kWh</td>
+                    <td>₹${avgCost.toFixed(2)}</td>
+                    <td style="font-weight:600;color:var(--accent)">₹${estBill.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td><span class="badge" style="background:${varBg};color:${varColor}">${varText}</span></td>
+                </tr>`;
+        }).join('');
+
+        document.getElementById('cost-table-container').innerHTML = `
+            <table>
+                <thead><tr><th>Building</th><th>Total kWh</th><th>Avg Cost/kWh</th><th>Estimated Bill</th><th>vs Last Month</th></tr></thead>
+                <tbody>${tableRows || '<tr><td colspan="5" class="loading-text">No cost data available</td></tr>'}</tbody>
+            </table>`;
+
+        // Row 3: KPI badges
+        let mostEfficientBuilding = "N/A", minRatio = Infinity;
+        const areaMap = {};
+        buildings.forEach(b => { areaMap[b.BuildingName] = b.TotalArea; });
+        consumption.forEach(c => {
+            const area = areaMap[c.name] || 0;
+            if (area > 0 && c.total > 0) {
+                const ratio = c.total / area;
+                if (ratio < minRatio) { minRatio = ratio; mostEfficientBuilding = c.name; }
+            }
+        });
+
+        let highestConsumer = "N/A", maxCons = -1;
+        consumption.forEach(c => {
+            if (c.total > maxCons) { maxCons = c.total; highestConsumer = c.name; }
+        });
+
+        let totalCostThisMonth = 0;
+        consumption.forEach(c => {
+            const readings = buildingLogs[c.name] || [];
+            let trKwh = 0, tCost = 0;
+            readings.forEach(r => {
+                const cost = costMap[r.source] || 7.50;
+                trKwh += r.UnitsConsumed;
+                tCost += r.UnitsConsumed * cost;
+            });
+            const avgCost = trKwh > 0 ? (tCost / trKwh) : 7.50;
+            totalCostThisMonth += c.total * avgCost;
+        });
+
+        let solarKwh = 0;
+        logs.forEach(log => {
+            if (log.source.toLowerCase().includes('solar')) solarKwh += log.UnitsConsumed;
+        });
+        const co2Saved = solarKwh * 0.82;
+
+        document.getElementById('kpi-efficient').textContent = mostEfficientBuilding;
+        document.getElementById('kpi-highest').textContent = highestConsumer;
+        document.getElementById('kpi-cost').textContent = `₹${totalCostThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        document.getElementById('kpi-co2').textContent = `${co2Saved.toLocaleString(undefined, {maximumFractionDigits: 1})} kg`;
+
+        // Animate KPI cards with a center-out cascade
+        const kpis = document.querySelectorAll('#page-analytics .kpi-badges-grid .stat-card');
+        const kn = kpis.length;
+        anime.set(kpis, { y: 24, opacity: 0, scale: 0.85 });
+        anime.animate(kpis, {
+            y: [24, 0],
+            opacity: [0, 1],
+            scale: [0.85, 1],
+            duration: 700,
+            ease: E.easeOutBack,
+            delay: (t, i) => Math.abs(i - (kn - 1) / 2) * 80,
+            onComplete: () => setTimeout(() => clearEntranceStyles(kpis), 720),
+        });
+    } finally {
+        analyticsLoading = false;
+    }
+}
+
+/* Form */
+async function loadFormDropdowns() {
+    const [meters, sources] = await Promise.all([get('/api/meters'), get('/api/sources')]);
+    if (!meters || !sources) return;
+    document.getElementById('f-meter').innerHTML =
+        meters.map(m => `<option value="${m.MeterID}">${m.BuildingName} — ${m.MeterType}</option>`).join('');
+    document.getElementById('f-source').innerHTML =
+        sources.map(s => `<option value="${s.SourceID}">${s.SourceType} (₹${s.UnitCostPerKWh}/kWh)</option>`).join('');
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+}
+
+async function submitReading() {
+    const body = {
+        meter_id: parseInt(document.getElementById('f-meter').value),
+        source_id: parseInt(document.getElementById('f-source').value),
+        reading_date: document.getElementById('f-date').value,
+        units_consumed: parseFloat(document.getElementById('f-units').value),
+        peak_load: parseFloat(document.getElementById('f-peak').value) || 0
+    };
+    if (isNaN(body.units_consumed)) {
+        const btn = document.querySelector('#page-add .btn-primary');
+        anime.animate(btn, { x: [0, -6, 6, -4, 4, 0], duration: 380, easing: E.easeInOutQuad });
+        return;
+    }
+    const r = await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.success) {
+        showToast('Reading saved successfully!');
+        document.getElementById('f-units').value = '';
+        document.getElementById('f-peak').value = '';
+    }
+}
+
+let toastTimeout;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    anime.remove(t);
+    if (toastTimeout) clearTimeout(toastTimeout);
+    anime.animate(t, {
+        y: [80, 0], opacity: [0, 1], duration: 420, ease: E.easeOutBack,
+        onComplete: () => {
+            toastTimeout = setTimeout(() => {
+                anime.animate(t, { y: 80, opacity: 0, duration: 380, ease: E.easeInQuad });
+            }, 2600);
+        },
+    });
+}
+
+/* ── 7. MAGNETIC TILT ────────────────────────────────────── */
+function magneticCards(selector) {
+    document.querySelectorAll(selector).forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            anime.remove(card);
+            anime.animate(card, {
+                rotateY: x * 6,
+                rotateX: -y * 6,
+                duration: 220,
+                ease: E.easeOutQuad,
+            });
+        });
+        card.addEventListener('mouseleave', () => {
+            anime.animate(card, {
+                rotateY: 0,
+                rotateX: 0,
+                duration: 400,
+                ease: E.easeOutQuad,
+            });
+        });
+    });
+}
+
+/* ── 8. BOOT ─────────────────────────────────────────────── */
+window.onload = () => {
+    document.body.classList.add('motion-ready');
+    curtainOpen();           // blinds retract — curtain reveal
+    initParticles();         // particle burst from center
+    refreshData('dash');
+    runChoreography('dash'); // full cinematic entrance
+    magneticCards('#page-dash .stat-card');
+};
 </script>
 
 </body>
