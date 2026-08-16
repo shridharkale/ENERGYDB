@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnergyFlow — Sign In</title>
+    <meta name="description" content="Login to the Campus Energy Consumption Management System">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        :root {
+            --bg: #f0f4ff;
+            --card-bg: #ffffff;
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --accent-dark: #1d4ed8;
+            --accent-soft: #eff6ff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --radius: 12px;
+            --shadow-xl: 0 24px 48px -12px rgb(0 0 0 / 0.18), 0 0 0 1px rgb(0 0 0 / 0.04);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ── Canvas background ── */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── Login layout ── */
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 24px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px) saturate(1.6);
+            -webkit-backdrop-filter: blur(20px) saturate(1.6);
+            border-radius: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.7);
+            box-shadow: var(--shadow-xl);
+            padding: 52px 44px 44px;
+            opacity: 0;                 /* Anime.js entry — starts hidden */
+            transform: translateY(30px) scale(0.97);
+        }
+
+        /* ── Brand section ── */
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 36px;
+        }
+
+        .brand-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.38);
+            will-change: transform;
+        }
+
+        .brand-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: white;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.03em;
+        }
+
+        .brand-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: -6px;
+            line-height: 1.5;
+        }
+
+        /* ── Form elements ── */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 13px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-muted);
+            stroke-width: 2;
+            fill: none;
+            pointer-events: none;
+            transition: stroke 0.2s;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 13px 16px 13px 44px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            background: #f8fafc;
+            color: var(--text-main);
+            transition: border-color 0.2s, background 0.2s;
+            /* box-shadow managed by Anime.js */
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            background: #ffffff;
+        }
+
+        .input-wrap:has(input:focus) svg {
+            stroke: var(--accent);
+        }
+
+        /* ── Login button ── */
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.01em;
+            overflow: hidden;
+            position: relative;
+            will-change: transform, box-shadow;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            transition: background 0.2s;
+        }
+
+        .btn-login:active {
+            transform: translateY(0) !important;
+        }
+
+        .btn-login svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+            stroke-width: 2.5;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        /* Loading spinner (hidden initially) */
+        .btn-login .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        .btn-login .btn-text { display: flex; align-items: center; gap: 8px; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Error box ── */
+        .error-box {
+            background: var(--danger-soft);
+            border: 1px solid #fca5a5;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 500;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%       { transform: translateX(-7px); }
+            40%       { transform: translateX(7px); }
+            60%       { transform: translateX(-4px); }
+            80%       { transform: translateX(4px); }
+        }
+
+        .error-box svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--danger);
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        /* ── Footer ── */
+        .login-footer {
+            text-align: center;
+            margin-top: 28px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* ── Floating orbs (positioned via JS) ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.06);
+            pointer-events: none;
+            z-index: 0;
+            will-change: transform;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Animated dot-grid + orb background -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Floating orbs (Anime.js will animate these) -->
+<div class="orb" id="orb-1" style="width:280px;height:280px;top:5%;left:10%;"></div>
+<div class="orb" id="orb-2" style="width:200px;height:200px;top:50%;left:60%;"></div>
+<div class="orb" id="orb-3" style="width:240px;height:240px;top:70%;left:5%;"></div>
+<div class="orb" id="orb-4" style="width:160px;height:160px;top:15%;left:75%;"></div>
+<div class="orb" id="orb-5" style="width:220px;height:220px;top:80%;left:70%;"></div>
+<div class="orb" id="orb-6" style="width:180px;height:180px;top:35%;left:35%;"></div>
+
+<div class="login-wrapper">
+    <div class="login-card" id="login-card">
+        <div class="brand">
+            <div class="brand-icon" id="brand-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div class="brand-title" id="brand-title">EnergyFlow</div>
+            <div class="brand-subtitle" id="brand-subtitle">Campus Energy Consumption Management System</div>
+        </div>
+
+        {% if error %}
+        <div class="error-box" id="error-box">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/login" id="login-form">
+            <div class="form-group" id="fg-email">
+                <label for="email">Email Address</label>
+                <div class="input-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        required
+                        autocomplete="email"
+                        value="{{ email_value or '' }}"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group" id="fg-password">
+                <label for="password">Password</label>
+                <div class="input-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login" id="login-btn">
+                <span class="btn-text">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="btn-arrow">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    Sign In
+                </span>
+                <!-- Spinner shown during submit -->
+                <svg class="spinner" id="btn-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
+                    <path stroke="white" stroke-width="3" stroke-linecap="round" d="M12 2a10 10 0 019.78 7.84"/>
+                </svg>
+            </button>
+        </form>
+
+        <div class="login-footer" id="login-footer">
+            &copy; 2026 EnergyFlow Systems &nbsp;·&nbsp; Campus Infrastructure Management
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// 1. DOT-GRID CANVAS BACKGROUND
+// ═══════════════════════════════════════════
+(function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    const SPACING = 30;
+    const DOT_R = 1.5;
+    const DOT_COLOR = '#cbd5e1';
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        draw();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = DOT_COLOR;
+        for (let x = SPACING; x < canvas.width; x += SPACING) {
+            for (let y = SPACING; y < canvas.height; y += SPACING) {
+                ctx.beginPath();
+                ctx.arc(x, y, DOT_R, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+})();
+
+// ═══════════════════════════════════════════
+// 2. FLOATING ORBS (Anime.js)
+// ═══════════════════════════════════════════
+const orbConfigs = [
+    { id: '#orb-1', tx: [-30, 30],  ty: [-20, 20],  dur: 9000  },
+    { id: '#orb-2', tx: [25, -25],  ty: [35, -35],  dur: 11000 },
+    { id: '#orb-3', tx: [-40, 40],  ty: [-30, 10],  dur: 13000 },
+    { id: '#orb-4', tx: [20, -20],  ty: [-40, 40],  dur: 10000 },
+    { id: '#orb-5', tx: [-25, 25],  ty: [20, -40],  dur: 12000 },
+    { id: '#orb-6', tx: [35, -35],  ty: [-15, 30],  dur: 8500  },
+];
+
+orbConfigs.forEach(cfg => {
+    anime({
+        targets: cfg.id,
+        translateX: cfg.tx,
+        translateY: cfg.ty,
+        duration: cfg.dur,
+        easing: 'easeInOutSine',
+        loop: true,
+        direction: 'alternate',
+    });
+});
+
+// ═══════════════════════════════════════════
+// 3. CARD ENTRY + STAGGERED CHILDREN
+// ═══════════════════════════════════════════
+const cardTl = anime.timeline({ easing: 'easeOutExpo' });
+
+cardTl
+    .add({
+        targets: '#login-card',
+        translateY: [30, 0],
+        opacity: [0, 1],
+        scale: [0.97, 1],
+        duration: 700,
+    })
+    .add(() => {
+        const staggerTargets = ['#brand-icon','#brand-title','#brand-subtitle','#fg-email','#fg-password','#login-btn','#login-footer'];
+        const errorBox = document.getElementById('error-box');
+        if (errorBox) staggerTargets.splice(3, 0, '#error-box');
+        return {
+            targets: staggerTargets,
+            opacity: [0, 1],
+            translateY: [12, 0],
+            delay: anime.stagger(60),
+            duration: 480,
+            easing: 'easeOutCubic',
+        };
+    }(), '-=380'); // overlap with card animation
+
+// ═══════════════════════════════════════════
+// 4. BRAND ICON PULSE (loop)
+// ═══════════════════════════════════════════
+anime({
+    targets: '#brand-icon',
+    scale: [1, 1.08, 1],
+    duration: 2000,
+    easing: 'easeInOutSine',
+    loop: true,
+    delay: 1200,  // start after entry
+});
+
+// ═══════════════════════════════════════════
+// 5. INPUT FOCUS GLOW (Anime.js)
+// ═══════════════════════════════════════════
+document.querySelectorAll('.input-wrap input').forEach(input => {
+    input.addEventListener('focus', () => {
+        anime({
+            targets: input,
+            boxShadow: ['0 0 0 0px rgba(37,99,235,0)', '0 0 0 4px rgba(37,99,235,0.18)'],
+            duration: 200,
+            easing: 'easeOutQuad',
+        });
+    });
+    input.addEventListener('blur', () => {
+        anime({
+            targets: input,
+            boxShadow: ['0 0 0 4px rgba(37,99,235,0.18)', '0 0 0 0px rgba(37,99,235,0)'],
+            duration: 250,
+            easing: 'easeOutQuad',
+        });
+    });
+});
+
+// ═══════════════════════════════════════════
+// 6. BUTTON HOVER (Anime.js)
+// ═══════════════════════════════════════════
+const btn = document.getElementById('login-btn');
+let btnHoverAnim = null;
+
+btn.addEventListener('mouseenter', () => {
+    if (btn.disabled) return;
+    btnHoverAnim = anime({
+        targets: btn,
+        translateY: -2,
+        boxShadow: '0 8px 24px rgba(37,99,235,0.52)',
+        duration: 150,
+        easing: 'easeOutQuad',
+    });
+});
+
+btn.addEventListener('mouseleave', () => {
+    if (btn.disabled) return;
+    anime({
+        targets: btn,
+        translateY: 0,
+        boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
+        duration: 200,
+        easing: 'easeOutQuad',
+    });
+});
+
+// ═══════════════════════════════════════════
+// 7. SUBMIT → LOADING STATE (shrink to circle + spinner)
+// ═══════════════════════════════════════════
+document.getElementById('login-form').addEventListener('submit', function () {
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    const btnText  = btn.querySelector('.btn-text');
+    const spinner  = document.getElementById('btn-spinner');
+    const btnW     = btn.offsetWidth;
+
+    // Freeze current width so we can shrink it
+    btn.style.width = btnW + 'px';
+
+    // Fade out the text first
+    anime({
+        targets: btnText,
+        opacity: 0,
+        duration: 150,
+        easing: 'easeOutQuad',
+        complete: () => {
+            btnText.style.display = 'none';
+        }
+    });
+
+    // Shrink button to a circle and show spinner
+    btn.style.minWidth = '0';
+    anime({
+        targets: btn,
+        width: 48,
+        borderRadius: 24,
+        duration: 380,
+        easing: 'easeInOutQuart',
+        delay: 120,
+        complete: () => {
+            spinner.style.display = 'block';
+        }
+    });
+});
+</script>
+
+</body>
+</html>
