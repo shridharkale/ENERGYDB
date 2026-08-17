@@ -1,549 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnergyFlow — Sign In</title>
-    <meta name="description" content="Login to the Campus Energy Consumption Management System">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <style>
-        :root {
-            --bg: #f0f4ff;
-            --card-bg: #ffffff;
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --accent-dark: #1d4ed8;
-            --accent-soft: #eff6ff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --danger: #ef4444;
-            --danger-soft: #fef2f2;
-            --radius: 12px;
-            --shadow-xl: 0 24px 48px -12px rgb(0 0 0 / 0.18), 0 0 0 1px rgb(0 0 0 / 0.04);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background: var(--bg);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* ── Canvas background ── */
-        #bg-canvas {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* ── Login layout ── */
-        .login-wrapper {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 440px;
-            padding: 24px;
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(20px) saturate(1.6);
-            -webkit-backdrop-filter: blur(20px) saturate(1.6);
-            border-radius: 24px;
-            border: 1px solid rgba(226, 232, 240, 0.7);
-            box-shadow: var(--shadow-xl);
-            padding: 52px 44px 44px;
-            opacity: 1;
-            transform: none;
-        }
-
-        /* ── Brand section ── */
-        .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 36px;
-        }
-
-        .brand-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.38);
-            will-change: transform;
-        }
-
-        .brand-icon svg {
-            width: 28px;
-            height: 28px;
-            stroke: white;
-            stroke-width: 2.5;
-            fill: none;
-        }
-
-        .brand-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: -0.03em;
-        }
-
-        .brand-subtitle {
-            font-size: 13px;
-            color: var(--text-muted);
-            text-align: center;
-            margin-top: -6px;
-            line-height: 1.5;
-        }
-
-        /* ── Form elements ── */
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: var(--text-main);
-            font-size: 13px;
-        }
-
-        .input-wrap {
-            position: relative;
-        }
-
-        .input-wrap svg {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 18px;
-            stroke: var(--text-muted);
-            stroke-width: 2;
-            fill: none;
-            pointer-events: none;
-            transition: stroke 0.2s;
-        }
-
-        .input-wrap input {
-            width: 100%;
-            padding: 13px 16px 13px 44px;
-            border-radius: 10px;
-            border: 1.5px solid var(--border);
-            font-family: inherit;
-            font-size: 14px;
-            outline: none;
-            background: #f8fafc;
-            color: var(--text-main);
-            transition: border-color 0.2s, background 0.2s;
-            /* box-shadow managed by Anime.js */
-        }
-
-        .input-wrap input:focus {
-            border-color: var(--accent);
-            background: #ffffff;
-        }
-
-        .input-wrap:has(input:focus) svg {
-            stroke: var(--accent);
-        }
-
-        /* ── Login button ── */
-        .btn-login {
-            width: 100%;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            letter-spacing: 0.01em;
-            overflow: hidden;
-            position: relative;
-            will-change: transform, box-shadow;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-            transition: background 0.2s;
-        }
-
-        .btn-login:active {
-            transform: translateY(0) !important;
-        }
-
-        .btn-login svg {
-            width: 18px;
-            height: 18px;
-            stroke: white;
-            stroke-width: 2.5;
-            fill: none;
-            flex-shrink: 0;
-        }
-
-        /* Loading spinner (hidden initially) */
-        .btn-login .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            animation: spin 0.8s linear infinite;
-        }
-        .btn-login .btn-text { display: flex; align-items: center; gap: 8px; }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ── Error box ── */
-        .error-box {
-            background: var(--danger-soft);
-            border: 1px solid #fca5a5;
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--danger);
-            font-size: 13px;
-            font-weight: 500;
-            animation: shake 0.4s ease;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%       { transform: translateX(-7px); }
-            40%       { transform: translateX(7px); }
-            60%       { transform: translateX(-4px); }
-            80%       { transform: translateX(4px); }
-        }
-
-        .error-box svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--danger);
-            stroke-width: 2;
-            fill: none;
-            flex-shrink: 0;
-        }
-
-        /* ── Footer ── */
-        .login-footer {
-            text-align: center;
-            margin-top: 28px;
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-
-        /* ── Floating orbs (positioned via JS) ── */
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            background: rgba(37, 99, 235, 0.06);
-            pointer-events: none;
-            z-index: 0;
-            will-change: transform;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EnergyFlow — Sign in</title>
+<meta name="description" content="Sign in to EnergyFlow campus energy analytics">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+:root{
+--bg:#080b0f;--surface:#10161c;--surface2:#141b22;--line:#26323e;--line2:#344455;
+--text:#eef2f6;--muted:#8190a2;--indigo:#7c83ff;--mint:#38d6a7;--amber:#f3b85f;--red:#ff6b77;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+body{min-height:100vh;display:grid;place-items:center;overflow:hidden;visibility:hidden}
+body.motion-ready{visibility:visible}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(to bottom,black,transparent 90%)}
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.shell{position:relative;z-index:2;width:min(1160px,calc(100% - 48px));min-height:640px;display:grid;grid-template-columns:1.05fr .95fr;background:#0c1116;border:1px solid var(--line);box-shadow:0 30px 90px rgba(0,0,0,.48);overflow:hidden}
+.visual{position:relative;padding:46px 48px;border-right:1px solid var(--line);overflow:hidden;background:linear-gradient(180deg,#0e141a,#0a0f14)}
+.visual:before{content:"";position:absolute;inset:18px;border:1px solid rgba(124,131,255,.08);pointer-events:none}
+.corner{position:absolute;width:18px;height:18px;border-color:#47576a;border-style:solid;opacity:.8}
+.corner.tl{top:18px;left:18px;border-width:1px 0 0 1px}.corner.tr{top:18px;right:18px;border-width:1px 1px 0 0}.corner.bl{bottom:18px;left:18px;border-width:0 0 1px 1px}.corner.br{bottom:18px;right:18px;border-width:0 1px 1px 0}
+.system-tag{display:flex;align-items:center;gap:9px;color:#6f7f91;text-transform:uppercase;letter-spacing:.16em;font-size:10px;font-weight:700}
+.system-dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px rgba(56,214,167,.8)}
+.visual h1{font:700 clamp(46px,6vw,76px)/.9 Outfit,sans-serif;letter-spacing:-.06em;margin:82px 0 20px;max-width:520px}
+.visual h1 span{color:var(--indigo)}
+.visual p{max-width:480px;color:#8291a3;font-size:14px;line-height:1.75;margin:0}
+.signal-wrap{position:absolute;left:48px;right:48px;bottom:58px;height:150px;border-top:1px solid #1e2934;border-bottom:1px solid #1e2934}
+.signal-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:32px 32px}
+#signal-canvas{position:absolute;inset:0;width:100%;height:100%}
+.signal-caption{position:absolute;right:0;top:-24px;color:#627286;font-size:10px;text-transform:uppercase;letter-spacing:.12em}
+.signal-readout{position:absolute;left:0;bottom:-25px;display:flex;gap:14px;color:#637386;font-size:10px}
+.signal-readout b{color:#b8c2cc;font-weight:600}
+.metrics{position:absolute;left:48px;top:36px;right:48px;display:flex;gap:24px;justify-content:flex-end;color:#68788a;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.metric-value{color:#bfc9d3;font-weight:700;margin-left:5px}
+.auth{background:#10161c;padding:64px 58px;display:flex;align-items:center;justify-content:center}
+.auth-inner{width:min(380px,100%)}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#68798b;font-weight:700;margin-bottom:12px}
+.auth h2{font:700 34px/1 Outfit,sans-serif;letter-spacing:-.04em;margin:0}
+.auth .sub{color:#7b8a9b;font-size:13px;margin:9px 0 30px}
+.greeting{height:28px;overflow:hidden;color:#8f96ff;font:600 16px Outfit,sans-serif;margin-bottom:10px}
+.field{margin-top:16px}
+.field label{display:block;color:#8c9aac;font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:7px}
+.input-shell{position:relative}
+.input-shell svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;stroke:#607084;fill:none}
+input{width:100%;padding:13px 14px 13px 42px;border-radius:9px;border:1px solid #273440;background:#0d1319;color:#eef2f6;outline:none;transition:border-color .2s,box-shadow .2s,background .2s}
+input:focus{border-color:#5f66db;background:#101820;box-shadow:0 0 0 3px rgba(95,102,219,.15)}
+input::placeholder{color:#536276}
+.error{display:flex;align-items:flex-start;gap:9px;border:1px solid #5a252c;background:#211317;color:#ff9da5;padding:11px 12px;border-radius:9px;margin:0 0 16px;font-size:12px}
+.error svg{width:17px;height:17px;stroke:var(--red);fill:none;flex:none}
+.submit{position:relative;width:100%;margin-top:22px;padding:13px 16px;border-radius:9px;background:#7c83ff;color:#090b10;font-weight:800;display:flex;justify-content:center;align-items:center;gap:9px;cursor:pointer;overflow:hidden;box-shadow:0 12px 26px rgba(92,99,218,.18)}
+.submit:before{content:"";position:absolute;top:0;bottom:0;left:-100px;width:80px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg)}
+.submit:hover:before{animation:shine .65s ease}
+.submit svg{width:17px;height:17px;stroke:currentColor;fill:none}
+@keyframes shine{to{left:120%}}
+.auth-footer{display:flex;justify-content:space-between;gap:12px;margin-top:20px;color:#5f6f81;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.status-line{margin-top:26px;padding-top:16px;border-top:1px solid #202b35;display:flex;align-items:center;justify-content:space-between;color:#607084;font-size:10px}
+.status-line span:first-child{display:flex;align-items:center;gap:7px}.tiny-dot{width:6px;height:6px;border-radius:50%;background:var(--mint)}
+#curtain{position:fixed;inset:0;display:flex;z-index:9999;pointer-events:none}
+.blind{flex:1;background:#080b0f;transform:scaleY(1);transform-origin:top;border-right:1px solid rgba(255,255,255,.02)}
+@media(max-width:900px){.shell{grid-template-columns:1fr;min-height:0}.visual{display:none}.auth{padding:48px 26px;min-height:580px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
-
-<!-- Animated dot-grid + orb background -->
 <canvas id="bg-canvas"></canvas>
-
-<!-- Floating orbs (Anime.js will animate these) -->
-<div class="orb" id="orb-1" style="width:280px;height:280px;top:5%;left:10%;"></div>
-<div class="orb" id="orb-2" style="width:200px;height:200px;top:50%;left:60%;"></div>
-<div class="orb" id="orb-3" style="width:240px;height:240px;top:70%;left:5%;"></div>
-<div class="orb" id="orb-4" style="width:160px;height:160px;top:15%;left:75%;"></div>
-<div class="orb" id="orb-5" style="width:220px;height:220px;top:80%;left:70%;"></div>
-<div class="orb" id="orb-6" style="width:180px;height:180px;top:35%;left:35%;"></div>
-
-<div class="login-wrapper">
-    <div class="login-card" id="login-card">
-        <div class="brand">
-            <div class="brand-icon" id="brand-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <div class="brand-title" id="brand-title">EnergyFlow</div>
-            <div class="brand-subtitle" id="brand-subtitle">Campus Energy Consumption Management System</div>
-        </div>
-
-        {% if error %}
-        <div class="error-box" id="error-box">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form method="POST" action="/login" id="login-form">
-            <div class="form-group" id="fg-email">
-                <label for="email">Email Address</label>
-                <div class="input-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="you@example.com"
-                        required
-                        autocomplete="email"
-                        value="{{ email_value or '' }}"
-                    >
-                </div>
-            </div>
-
-            <div class="form-group" id="fg-password">
-                <label for="password">Password</label>
-                <div class="input-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Enter your password"
-                        required
-                        autocomplete="current-password"
-                    >
-                </div>
-            </div>
-
-            <button type="submit" class="btn-login" id="login-btn">
-                <span class="btn-text">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="btn-arrow">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                    </svg>
-                    Sign In
-                </span>
-                <!-- Spinner shown during submit -->
-                <svg class="spinner" id="btn-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3"/>
-                    <path stroke="white" stroke-width="3" stroke-linecap="round" d="M12 2a10 10 0 019.78 7.84"/>
-                </svg>
-            </button>
-        </form>
-
-        <div class="login-footer" id="login-footer">
-            &copy; 2026 EnergyFlow Systems &nbsp;·&nbsp; Campus Infrastructure Management
-        </div>
-    </div>
+<div id="curtain"></div>
+<div class="shell" id="shell">
+<section class="visual">
+<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+<div class="metrics"><span>Grid <b class="metric-value">ONLINE</b></span><span>Telemetry <b class="metric-value">LIVE</b></span></div>
+<div class="system-tag"><span class="system-dot"></span> Energy infrastructure monitoring</div>
+<h1>See where your<br><span>energy</span> moves.</h1>
+<p>EnergyFlow turns campus meter readings into a live operational picture — consumption, peak demand, source mix and alerts in one focused workspace.</p>
+<div class="signal-wrap">
+<div class="signal-grid"></div><canvas id="signal-canvas"></canvas>
+<div class="signal-caption">Live demand waveform</div>
+<div class="signal-readout"><span>BASELINE <b id="sig-base">42.8 kW</b></span><span>PEAK <b id="sig-peak">68.3 kW</b></span><span>FREQ <b>50 Hz</b></span></div>
 </div>
+</section>
 
+<section class="auth">
+<div class="auth-inner">
+<div class="eyebrow">Campus Energy OS</div>
+<div class="greeting" id="greeting">Welcome</div>
+<h2>Sign in to continue</h2>
+<p class="sub">Access your live energy command center.</p>
+
+{% if error %}
+<div class="error" id="error-box"><svg viewBox="0 0 24 24"><path d="M12 9v3m0 4h.01M10.3 4.2 3.8 16.8c-.7 1.2.2 2.7 1.6 2.7h13.2c1.4 0 2.3-1.5 1.6-2.7L13.7 4.2c-.7-1.2-2.7-1.2-3.4 0Z"/></svg><span>{{ error }}</span></div>
+{% endif %}
+
+<form method="POST" action="/login" id="login-form">
+<div class="field" id="field-email"><label for="email">Email address</label><div class="input-shell"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg><input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required value="{{ email_value or '' }}"></div></div>
+<div class="field" id="field-password"><label for="password">Password</label><div class="input-shell"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required></div></div>
+<button class="submit" id="login-btn" type="submit"><span id="btn-copy">Enter command center</span><svg viewBox="0 0 24 24"><path d="M5 12h13m-5-5 5 5-5 5"/></svg></button>
+</form>
+
+<div class="status-line"><span><i class="tiny-dot"></i> Secure application session</span><span>EnergyFlow / 2026</span></div>
+<div class="auth-footer"><span>Campus infrastructure</span><span>Operational analytics</span></div>
+</div>
+</section>
+</div>
 <script>
-// ═══════════════════════════════════════════
-// 1. DOT-GRID CANVAS BACKGROUND
-// ═══════════════════════════════════════════
-(function () {
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    const SPACING = 30;
-    const DOT_R = 1.5;
-    const DOT_COLOR = '#cbd5e1';
-
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        draw();
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = DOT_COLOR;
-        for (let x = SPACING; x < canvas.width; x += SPACING) {
-            for (let y = SPACING; y < canvas.height; y += SPACING) {
-                ctx.beginPath();
-                ctx.arc(x, y, DOT_R, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    }
-
-    window.addEventListener('resize', resize);
-    resize();
+(function(){
+'use strict';
+setTimeout(function(){document.body.classList.add('motion-ready')},200);
+const curtain=document.getElementById('curtain');
+for(let i=0;i<12;i++){const b=document.createElement('div');b.className='blind';curtain.appendChild(b);}
+function reveal(){anime.set('.blind',{scaleY:1});anime({targets:'.blind',scaleY:[1,0],duration:520,easing:'easeOutExpo',delay:anime.stagger(34),complete:()=>curtain.style.display='none'})}
+function waveform(){
+const c=document.getElementById('signal-canvas'),ctx=c.getContext('2d');let w=0,h=0,t=0;
+function resize(){w=c.width=c.offsetWidth;h=c.height=c.offsetHeight}
+function draw(){ctx.clearRect(0,0,w,h);ctx.beginPath();for(let x=0;x<=w;x++){const n=x/w;const y=h*.56+Math.sin(n*18+t)*10+Math.sin(n*47-t*1.7)*5+Math.sin(n*90+t*.6)*2; x?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.strokeStyle='rgba(124,131,255,.82)';ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();for(let x=0;x<=w;x++){const n=x/w;const y=h*.57+Math.sin(n*18+t)*10; x?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.strokeStyle='rgba(56,214,167,.22)';ctx.lineWidth=3;ctx.stroke();t+=.018;requestAnimationFrame(draw)}
+resize();window.addEventListener('resize',resize);draw()}
+const greetings=['Welcome','Namaste','Bonjour','Hola','こんにちは','Ciao'];
+function rotateGreeting(){const el=document.getElementById('greeting'),current=el.textContent;anime({targets:el,translateY:[0,-20],opacity:[1,0],duration:220,easing:'easeInQuad',complete:()=>{const next=greetings[(greetings.indexOf(current)+1)%greetings.length];el.textContent=next;anime({targets:el,translateY:[20,0],opacity:[0,1],duration:320,easing:'easeOutBack'})}})}
+function entrance(){
+anime({targets:'#shell',translateY:[22,0],opacity:[0,1],duration:700,easing:'easeOutQuart'});
+anime({targets:'.visual .system-tag',translateX:[-18,0],opacity:[0,1],duration:520,delay:180,easing:'easeOutQuart'});
+anime({targets:'.visual h1',translateY:[22,0],opacity:[0,1],duration:760,delay:240,easing:'easeOutQuart'});
+anime({targets:'.visual p',translateY:[16,0],opacity:[0,1],duration:600,delay:410,easing:'easeOutQuart'});
+anime({targets:'.metrics span',translateY:[-8,0],opacity:[0,1],duration:420,delay:anime.stagger(100,{start:220}),easing:'easeOutQuart'});
+anime({targets:'#field-email,#field-password',translateY:[16,0],opacity:[0,1],duration:520,delay:anime.stagger(100,{start:260}),easing:'easeOutQuart'});
+anime({targets:'#login-btn',translateY:[12,0],opacity:[0,1],duration:520,delay:510,easing:'easeOutBack'});
+anime({targets:'.status-line,.auth-footer',opacity:[0,1],translateY:[8,0],duration:460,delay:700,easing:'easeOutQuart'});
+}
+document.querySelectorAll('input').forEach(input=>{input.addEventListener('focus',()=>anime({targets:input,boxShadow:'0 0 0 3px rgba(95,102,219,.15)',duration:180,easing:'easeOutQuad'}));input.addEventListener('blur',()=>anime({targets:input,boxShadow:'0 0 0 0 rgba(95,102,219,0)',duration:220,easing:'easeOutQuad'}))});
+const btn=document.getElementById('login-btn');
+btn.addEventListener('mouseenter',()=>anime({targets:btn,translateY:-2,scale:1.01,duration:160,easing:'easeOutQuad'}));
+btn.addEventListener('mouseleave',()=>anime({targets:btn,translateY:0,scale:1,duration:220,easing:'easeOutQuad'}));
+document.getElementById('login-form').addEventListener('submit',()=>{btn.disabled=true;anime({targets:btn,scale:[1,0.98,1],duration:220,easing:'easeOutQuad'});anime({targets:'#btn-copy',opacity:[1,0],duration:140,easing:'easeOutQuad'});anime({targets:'.blind',scaleY:[0,1],duration:360,easing:'easeInExpo',delay:anime.stagger(24),begin:()=>curtain.style.display='flex'})});
+window.addEventListener('load',()=>{document.body.classList.add('motion-ready');reveal();waveform();entrance();setInterval(rotateGreeting,2300)});
 })();
-
-// ═══════════════════════════════════════════
-// 2. FLOATING ORBS (Anime.js)
-// ═══════════════════════════════════════════
-const orbConfigs = [
-    { id: '#orb-1', tx: [-30, 30],  ty: [-20, 20],  dur: 9000  },
-    { id: '#orb-2', tx: [25, -25],  ty: [35, -35],  dur: 11000 },
-    { id: '#orb-3', tx: [-40, 40],  ty: [-30, 10],  dur: 13000 },
-    { id: '#orb-4', tx: [20, -20],  ty: [-40, 40],  dur: 10000 },
-    { id: '#orb-5', tx: [-25, 25],  ty: [20, -40],  dur: 12000 },
-    { id: '#orb-6', tx: [35, -35],  ty: [-15, 30],  dur: 8500  },
-];
-
-orbConfigs.forEach(cfg => {
-    anime({
-        targets: cfg.id,
-        translateX: cfg.tx,
-        translateY: cfg.ty,
-        duration: cfg.dur,
-        easing: 'easeInOutSine',
-        loop: true,
-        direction: 'alternate',
-    });
-});
-
-// ═══════════════════════════════════════════
-// 3. CARD ENTRY + STAGGERED CHILDREN
-// ═══════════════════════════════════════════
-const cardTl = anime.timeline({ easing: 'easeOutExpo' });
-
-cardTl
-    .add(() => {
-        const staggerTargets = ['#brand-icon','#brand-title','#brand-subtitle','#fg-email','#fg-password','#login-btn','#login-footer'];
-        const errorBox = document.getElementById('error-box');
-        if (errorBox) staggerTargets.splice(3, 0, '#error-box');
-        return {
-            targets: staggerTargets,
-            opacity: [0, 1],
-            translateY: [12, 0],
-            delay: anime.stagger(60),
-            duration: 480,
-            easing: 'easeOutCubic',
-        };
-    }());
-
-// ═══════════════════════════════════════════
-// 4. BRAND ICON PULSE (loop)
-// ═══════════════════════════════════════════
-anime({
-    targets: '#brand-icon',
-    scale: [1, 1.08, 1],
-    duration: 2000,
-    easing: 'easeInOutSine',
-    loop: true,
-    delay: 1200,  // start after entry
-});
-
-// ═══════════════════════════════════════════
-// 5. INPUT FOCUS GLOW (Anime.js)
-// ═══════════════════════════════════════════
-document.querySelectorAll('.input-wrap input').forEach(input => {
-    input.addEventListener('focus', () => {
-        anime({
-            targets: input,
-            boxShadow: ['0 0 0 0px rgba(37,99,235,0)', '0 0 0 4px rgba(37,99,235,0.18)'],
-            duration: 200,
-            easing: 'easeOutQuad',
-        });
-    });
-    input.addEventListener('blur', () => {
-        anime({
-            targets: input,
-            boxShadow: ['0 0 0 4px rgba(37,99,235,0.18)', '0 0 0 0px rgba(37,99,235,0)'],
-            duration: 250,
-            easing: 'easeOutQuad',
-        });
-    });
-});
-
-// ═══════════════════════════════════════════
-// 6. BUTTON HOVER (Anime.js)
-// ═══════════════════════════════════════════
-const btn = document.getElementById('login-btn');
-let btnHoverAnim = null;
-
-btn.addEventListener('mouseenter', () => {
-    if (btn.disabled) return;
-    btnHoverAnim = anime({
-        targets: btn,
-        translateY: -2,
-        boxShadow: '0 8px 24px rgba(37,99,235,0.52)',
-        duration: 150,
-        easing: 'easeOutQuad',
-    });
-});
-
-btn.addEventListener('mouseleave', () => {
-    if (btn.disabled) return;
-    anime({
-        targets: btn,
-        translateY: 0,
-        boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
-        duration: 200,
-        easing: 'easeOutQuad',
-    });
-});
-
-// ═══════════════════════════════════════════
-// 7. SUBMIT → LOADING STATE (shrink to circle + spinner)
-// ═══════════════════════════════════════════
-document.getElementById('login-form').addEventListener('submit', function () {
-    if (btn.disabled) return;
-    btn.disabled = true;
-
-    const btnText  = btn.querySelector('.btn-text');
-    const spinner  = document.getElementById('btn-spinner');
-    const btnW     = btn.offsetWidth;
-
-    // Freeze current width so we can shrink it
-    btn.style.width = btnW + 'px';
-
-    // Fade out the text first
-    anime({
-        targets: btnText,
-        opacity: 0,
-        duration: 150,
-        easing: 'easeOutQuad',
-        complete: () => {
-            btnText.style.display = 'none';
-        }
-    });
-
-    // Shrink button to a circle and show spinner
-    btn.style.minWidth = '0';
-    anime({
-        targets: btn,
-        width: 48,
-        borderRadius: 24,
-        duration: 380,
-        easing: 'easeInOutQuart',
-        delay: 120,
-        complete: () => {
-            spinner.style.display = 'block';
-        }
-    });
-});
 </script>
-
 </body>
 </html>
